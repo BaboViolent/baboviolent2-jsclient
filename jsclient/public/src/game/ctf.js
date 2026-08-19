@@ -18,6 +18,7 @@ export class CTFState {
   }
 
   reset(map) {
+    this._pod = [[...map.flagPod[0]], [...map.flagPod[1]]];
     this.flagState = [FLAG_AT_POD, FLAG_AT_POD];
     this.flagPos = [
       [...map.flagPod[0]],
@@ -47,7 +48,6 @@ export class CTFState {
   }
 
   init(map) {
-    this._pod = [[...map.flagPod[0]], [...map.flagPod[1]]];
     this.reset(map);
   }
 
