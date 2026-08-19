@@ -59,6 +59,24 @@ void main() {
 
 const STRIDE = 7 * 4;
 
+/** Project a world point into canvas pixels, matching Player::onScreenPos. */
+export function projectWorldToScreen(mvp, point, width, height) {
+  const [x, y, z = 0] = point;
+  const clipX = mvp[0] * x + mvp[4] * y + mvp[8] * z + mvp[12];
+  const clipY = mvp[1] * x + mvp[5] * y + mvp[9] * z + mvp[13];
+  const clipZ = mvp[2] * x + mvp[6] * y + mvp[10] * z + mvp[14];
+  const clipW = mvp[3] * x + mvp[7] * y + mvp[11] * z + mvp[15];
+  if (clipW <= 0) return null;
+  const ndcX = clipX / clipW;
+  const ndcY = clipY / clipW;
+  const ndcZ = clipZ / clipW;
+  if (ndcX < -1 || ndcX > 1 || ndcY < -1 || ndcY > 1 || ndcZ < -1 || ndcZ > 1) return null;
+  return [
+    (ndcX * 0.5 + 0.5) * width,
+    (1 - (ndcY * 0.5 + 0.5)) * height,
+  ];
+}
+
 export class Renderer {
   constructor(gl, assets) {
     this.gl = gl;
@@ -368,7 +386,14 @@ export class Renderer {
     if (game.editorMode) this.drawEditorMarkers(game);
     gl.bindVertexArray(null);
 
-    if (!game.editorMode) this.hud.render(game);
+    if (!game.editorMode) {
+      for (const player of game.players) {
+        player.onScreenPos = player.status === PLAYER_STATUS_ALIVE
+          ? projectWorldToScreen(mvp, player.currentCF.position, gl.canvas.width, gl.canvas.height)
+          : null;
+      }
+      this.hud.render(game);
+    }
   }
 
   playerWeaponMatrix(player, forward = 0, extraAngleDeg = 0) {

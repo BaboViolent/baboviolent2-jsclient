@@ -9,7 +9,7 @@ import {
   WEAPON_SNIPER, WEAPON_SHOTGUN, WEAPON_CHAIN_GUN, WEAPON_GRENADE,
   WEAPON_COCKTAIL_MOLOTOV, WEAPONS, SV_ENABLE_SHOTGUN_RELOAD,
   GAME_TYPE_CTF, GAME_TYPE_TDM, GAME_TYPE_DM, GAME_TYPE_SND, SV_WIN_LIMIT,
-  PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, PLAYER_STATUS_DEAD,
+  PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD,
   GAME_BLUE_WIN, GAME_RED_WIN, GAME_DRAW, GAME_PLAYING,
 } from '../game/constants.js';
 
@@ -700,6 +700,21 @@ export class Hud {
     }
   }
 
+  /** Player.cpp::renderName: center the bitmap name 28 px above each living Babo. */
+  renderPlayerNames(game, scale) {
+    const gl = this.gl;
+    const fontSize = 22 * scale;
+    const offset = 28 * scale;
+    for (const player of game.players) {
+      if (player.status !== PLAYER_STATUS_ALIVE || !player.onScreenPos || !player.name) continue;
+      const [x, y] = player.onScreenPos;
+      if (x <= 0 || x >= gl.canvas.width || y <= 0 || y >= gl.canvas.height) continue;
+      const name = String(player.name).slice(0, 31);
+      this.textCenter(fontSize, x + scale, y - offset + scale, name, [0, 0, 0, 0.9]);
+      this.textCenter(fontSize, x, y - offset, name, TEXT_COLORS[9]);
+    }
+  }
+
   render(game) {
     const gl = this.gl;
     const dpr = gl.canvas.width / gl.canvas.clientWidth;
@@ -724,6 +739,7 @@ export class Hud {
       this.renderSniperScope(game, scale);
     }
     this.renderMatchResult(game);
+    this.renderPlayerNames(game, scale);
 
     // Spectators have no body, so no health/ammo/throwables to show (Client.cpp:675).
     if (!spectating) {
