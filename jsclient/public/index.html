@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BaboViolent 2 — JS client</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="view"></canvas>
+
+  <div id="loading" class="boot-screen">
+    <p class="boot-title">BaboViolent 2</p>
+    <p class="boot-sub">Loading…</p>
+  </div>
+
+  <div id="intro" class="boot-screen native-intro" hidden tabindex="-1" aria-label="RnD Labs intro">
+    <canvas id="introLogo" class="native-intro-logo"></canvas>
+  </div>
+
+  <!-- Menu2 — MenuSetup.cpp / CMainTab.cpp (800×600 → fullscreen) -->
+  <div id="menu2" class="menu2-root" hidden>
+    <div class="menu2-viewport">
+      <button type="button" id="btnResume" class="menu-btn menu-resume">Resume Game</button>
+      <nav id="menu2Tabs" class="menu2-tabs">
+        <button type="button" data-tab="profile" class="menu-tab active">Profile</button>
+        <button type="button" data-tab="browser" class="menu-tab">Game Browser</button>
+        <button type="button" data-tab="editor" class="menu-tab">Map Editor</button>
+        <button type="button" data-tab="options" class="menu-tab">Options</button>
+        <button type="button" data-tab="credits" class="menu-tab">Credits</button>
+      </nav>
+      <div id="menuPanelFrame" class="menu2-panel-frame">
+        <div id="panel-profile" class="menu2-panel"></div>
+        <div id="panel-browser" class="menu2-panel" hidden></div>
+        <div id="panel-editor" class="menu2-panel" hidden></div>
+        <div id="panel-options" class="menu2-panel" hidden></div>
+        <div id="panel-credits" class="menu2-panel" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="connectOverlay" class="boot-screen" hidden>
+    <p class="boot-title">Connecting</p>
+    <p id="connectStatus" class="boot-sub">Opening server connection…</p>
+    <button type="button" id="btnCancelConnect" class="menu-btn">Cancel</button>
+  </div>
+
+  <div id="ingameMenu" class="ig-root" hidden>
+    <div class="ig-header">
+      <div id="igGameTitle" class="ig-game-title">Deathmatch</div>
+      <div id="igGameSubtitle" class="ig-game-sub"></div>
+      <div id="igMapInfo" class="ig-map-info">
+        <canvas id="igMapInfoCanvas" aria-hidden="true"></canvas>
+      </div>
+    </div>
+    <div class="ig-columns">
+      <div class="ig-col ig-teams">
+        <button type="button" class="menu-btn ig-btn ig-blue" data-team="0">Join blue team</button>
+        <button type="button" class="menu-btn ig-btn ig-red" data-team="1">Join red team</button>
+        <button type="button" class="menu-btn ig-btn" data-team="-1">Spectator</button>
+        <button type="button" class="menu-btn ig-btn" id="btnAutoTeam">Auto assign team</button>
+        <button type="button" class="menu-btn ig-btn" id="btnDisconnect">Disconnect</button>
+        <button type="button" class="menu-btn ig-btn" id="btnMainMenu">&lt;- Main menu</button>
+      </div>
+      <div class="ig-col ig-weapons" id="igWeapons"></div>
+      <div class="ig-col ig-melee" id="igMelee"></div>
+    </div>
+  </div>
+
+  <div id="overlay" hidden>
+    <span id="help">WASD move · LMB shoot · RMB grenade · MMB molotov · Space melee · F pickup · Tab scores · T chat · ` console · Esc menu</span>
+  </div>
+  <div id="worldEditor" class="world-editor-toolbar" hidden></div>
+  <input id="textInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+    aria-hidden="true" data-1p-ignore data-bwignore data-lpignore="true" data-form-type="other"
+    data-protonpass-ignore="true" data-keeper-ignore="true">
+  <div id="hud"></div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

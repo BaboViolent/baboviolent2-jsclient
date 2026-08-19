@@ -1,0 +1,6 @@
+/jsclient/node_modules/
+.env
+.env.*
+*.pem
+*.key
+*.db

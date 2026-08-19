@@ -1,0 +1,4 @@
+.git
+jsclient/test
+jsclient/node_modules
+*.db
