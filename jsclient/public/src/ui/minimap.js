@@ -2,6 +2,8 @@ import {
   PLAYER_STATUS_ALIVE,
   PLAYER_TEAM_BLUE,
   PLAYER_TEAM_RED,
+  GAME_TYPE_CTF,
+  GAME_TYPE_TDM,
 } from '../game/constants.js';
 import { FLAG_AT_POD, FLAG_DROPPED } from '../game/ctf.js';
 
@@ -13,10 +15,13 @@ export function minimapPoint(position, bounds) {
   ];
 }
 
-export function visibleMinimapPlayers(players, viewer, spectating = false) {
+export function visibleMinimapPlayers(players, viewer, gameType, spectating = false) {
+  const teamMode = gameType === GAME_TYPE_TDM || gameType === GAME_TYPE_CTF;
   return players.filter((player) => {
-    if (!player || player === viewer || player.status !== PLAYER_STATUS_ALIVE) return false;
+    if (!player || player === viewer) return false;
     if (player.teamID !== PLAYER_TEAM_BLUE && player.teamID !== PLAYER_TEAM_RED) return false;
+    if (!teamMode) return player.firedShowDelay > 0;
+    if (player.status !== PLAYER_STATUS_ALIVE) return false;
     return spectating || player.teamID === viewer.teamID;
   });
 }

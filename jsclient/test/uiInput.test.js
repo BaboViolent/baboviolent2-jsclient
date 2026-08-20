@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { GameUI } from '../public/src/ui/ui.js';
-import { CHAT_TEAM_ALL } from '../public/src/game/constants.js';
+import { CHAT_TEAM_ALL, GAME_TYPE_CTF, GAME_TYPE_DM } from '../public/src/game/constants.js';
 
 function onlineGame() {
   const sent = [];
@@ -45,4 +45,22 @@ test('focused chat and console input can be cancelled without refreshing', () =>
   assert.match(ui.consoleMessages.at(-1), /Commands:/);
   assert.equal(ui.handleTextInputKey('Escape'), true);
   assert.equal(ui.consoleActive, false);
+});
+
+test('kill feed uses neutral names in FFA and team colors in CTF', () => {
+  const game = onlineGame();
+  const ui = new GameUI(game);
+  const killer = { name: 'Killer', teamID: 0 };
+  const victim = { name: 'Victim', teamID: 1 };
+
+  game.gameType = GAME_TYPE_DM;
+  ui.addKill(killer, victim, 0);
+  assert.equal(ui.eventMessages.at(-1).message.startsWith('Killer'), true);
+  assert.equal(ui.eventMessages.at(-1).message.includes('{Killer'), false);
+  assert.equal(ui.eventMessages.at(-1).message.includes('}Victim'), false);
+
+  game.gameType = GAME_TYPE_CTF;
+  ui.addKill(killer, victim, 0);
+  assert.equal(ui.eventMessages.at(-1).message.startsWith('{Killer'), true);
+  assert.equal(ui.eventMessages.at(-1).message.includes('}Victim'), true);
 });

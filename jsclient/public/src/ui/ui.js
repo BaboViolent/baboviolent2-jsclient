@@ -1,5 +1,7 @@
 // In-game UI state: console, chat, kill feed, scoreboard (Client.cpp / Console.cpp / ClientRender.cpp).
-import { WEAPONS, CHAT_TEAM_ALL, PLAYER_TEAM_SPECTATOR } from '../game/constants.js';
+import {
+  WEAPONS, CHAT_TEAM_ALL, PLAYER_TEAM_SPECTATOR, GAME_TYPE_CTF, GAME_TYPE_TDM,
+} from '../game/constants.js';
 import { parseColorRuns } from './colors.js';
 
 const MAX_CHAT = 12;
@@ -52,8 +54,9 @@ export class GameUI {
   addKill(killer, victim, weaponID) {
     if (!killer || killer === victim) return;
     const weapon = WEAPONS[weaponID]?.name ?? '???';
-    const kTeam = killer.teamID === 0 ? '{' : killer.teamID === 1 ? '}' : '';
-    const vTeam = victim.teamID === 0 ? '{' : victim.teamID === 1 ? '}' : '';
+    const teamMode = this.game.gameType === GAME_TYPE_TDM || this.game.gameType === GAME_TYPE_CTF;
+    const kTeam = teamMode ? (killer.teamID === 0 ? '{' : killer.teamID === 1 ? '}' : '') : '';
+    const vTeam = teamMode ? (victim.teamID === 0 ? '{' : victim.teamID === 1 ? '}' : '') : '';
     this.addEvent(`${kTeam}${killer.name}\x08 ----- ${weapon} -----\x08 ${vTeam}${victim.name}`);
   }
 

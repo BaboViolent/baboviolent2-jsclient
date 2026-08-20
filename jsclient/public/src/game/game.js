@@ -804,6 +804,7 @@ export class Game {
   applyNetShoot(sh) {
     const owner = this.resolvePlayer(sh.playerID);
     if (!owner) return;
+    owner.firedShowDelay = 2;
     const isLocalShoot = owner === this.thisPlayer;
     if (!sh.isFlame) {
       const photon = sh.weaponID === WEAPON_PHOTON_RIFLE;

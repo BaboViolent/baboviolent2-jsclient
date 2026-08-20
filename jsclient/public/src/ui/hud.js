@@ -769,11 +769,12 @@ export class Hud {
 
         // Team knowledge is shared on the minimap. Spectators can see both
         // teams; active players only see living friends, never enemies.
-        for (const friend of visibleMinimapPlayers(game.players, player, spectating)) {
+        const teamMode = game.gameType === GAME_TYPE_TDM || game.gameType === GAME_TYPE_CTF;
+        for (const friend of visibleMinimapPlayers(game.players, player, game.gameType, spectating)) {
           const [friendX, friendY] = minimapPoint(friend.currentCF.position, bounds);
-          const color = friend.teamID === PLAYER_TEAM_BLUE
-            ? [0.2, 0.55, 1, 1]
-            : [1, 0.25, 0.2, 1];
+          const color = teamMode
+            ? (friend.teamID === PLAYER_TEAM_BLUE ? [0.2, 0.55, 1, 1] : [1, 0.25, 0.2, 1])
+            : [1, 0.78, 0.2, Math.min(1, friend.firedShowDelay / 2)];
           this.rect(Math.round(friendX) - 2, Math.round(friendY) - 2, 4, 4, color);
         }
 
@@ -795,9 +796,9 @@ export class Hud {
 
         const p = spectating ? game.specLookAt : player.currentCF.position;
         const [dotX, dotY] = minimapPoint(p, bounds);
-        const localColor = player.teamID === PLAYER_TEAM_RED
-          ? [1, 0.4, 0.3, 1]
-          : [0.3, 0.7, 1, 1];
+        const localColor = teamMode
+          ? (player.teamID === PLAYER_TEAM_RED ? [1, 0.4, 0.3, 1] : [0.3, 0.7, 1, 1])
+          : [0.4, 1, 0.65, 1];
         this.rect(Math.round(dotX) - 2, Math.round(dotY) - 2, 4, 4, localColor);
     }
 

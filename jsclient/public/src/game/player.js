@@ -30,6 +30,8 @@ export class Player {
     this.grenadeDelay = 0;
     this.meleeDelay = 0;
     this.lastShootWasNade = false;
+    /** Seconds this player remains revealed on the minimap after firing. */
+    this.firedShowDelay = 0;
     /** Legacy remote-detonation/cleanup state, reset by NET_SVCL_EXPLOSION owner ID. */
     this.rocketInAir = false;
     this.flagAttempts = 0;
@@ -84,6 +86,9 @@ export class Player {
   }
 
   tickDelays(delay) {
+    if (this.firedShowDelay > 0) {
+      this.firedShowDelay = Math.max(0, this.firedShowDelay - delay);
+    }
     if (this.grenadeDelay > 0) {
       this.grenadeDelay -= delay;
       if (this.grenadeDelay < 0) this.grenadeDelay = 0;

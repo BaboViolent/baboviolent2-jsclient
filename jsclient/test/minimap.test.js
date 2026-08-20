@@ -12,6 +12,8 @@ import {
   PLAYER_STATUS_DEAD,
   PLAYER_TEAM_BLUE,
   PLAYER_TEAM_RED,
+  GAME_TYPE_DM,
+  GAME_TYPE_TDM,
 } from '../public/src/game/constants.js';
 import { FLAG_AT_POD, FLAG_DROPPED } from '../public/src/game/ctf.js';
 
@@ -27,12 +29,24 @@ test('minimap shows living friends but not enemies or dead teammates', () => {
   const deadFriend = player(PLAYER_TEAM_BLUE, PLAYER_STATUS_DEAD);
   const enemy = player(PLAYER_TEAM_RED);
   assert.deepEqual(
-    visibleMinimapPlayers([viewer, friend, deadFriend, enemy], viewer),
+    visibleMinimapPlayers([viewer, friend, deadFriend, enemy], viewer, GAME_TYPE_TDM),
     [friend],
   );
   assert.deepEqual(
-    visibleMinimapPlayers([viewer, friend, deadFriend, enemy], viewer, true),
+    visibleMinimapPlayers([viewer, friend, deadFriend, enemy], viewer, GAME_TYPE_TDM, true),
     [friend, enemy],
+  );
+});
+
+test('FFA minimap reveals only opponents who fired recently', () => {
+  const viewer = player(PLAYER_TEAM_BLUE);
+  const hiddenSameID = player(PLAYER_TEAM_BLUE);
+  const hiddenOtherID = player(PLAYER_TEAM_RED);
+  const revealed = player(PLAYER_TEAM_BLUE);
+  revealed.firedShowDelay = 1.5;
+  assert.deepEqual(
+    visibleMinimapPlayers([viewer, hiddenSameID, hiddenOtherID, revealed], viewer, GAME_TYPE_DM),
+    [revealed],
   );
 });
 
