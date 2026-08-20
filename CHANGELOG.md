@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.22](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.21...v0.5.22) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ctf:** restore native carried flag draw order ([690d2f3](https://github.com/BaboViolent/baboviolent2-jsclient/commit/690d2f33a8d9c64c3606efb5c7ed227534140ade))
+* **hud:** sharpen respawn countdown ([9a28c9a](https://github.com/BaboViolent/baboviolent2-jsclient/commit/9a28c9ac65d54e8d4d6462e3e6f597f3d3c99205))
+
 ## [0.5.21](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.20...v0.5.21) (2026-08-20)
 
 
