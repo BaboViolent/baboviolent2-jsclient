@@ -579,25 +579,36 @@ export class Renderer {
       const carrier = game.ctf.flagState[i];
       const p = [...f.pos];
       let angle = 0;
+      let carried = false;
       if (carrier >= 0) {
         const player = game.players.find((pl) => pl.playerID === carrier);
         if (player) {
-          // Native renders carried flags as camera-facing quads. Rotating the
-          // thin 3D flag with aim made it turn edge-on and appear to vanish.
-          // Keep it facing the camera and visibly above the carrier instead.
+          // The DKO cloth is authored upright in X/Z. Lay carried cloth into
+          // X/Y so its full face remains visible to the top-down camera; a Z
+          // rotation alone leaves its thin edge facing the camera and makes
+          // parts of the waving animation appear to vanish.
           p[0] = player.currentCF.position[0];
           p[1] = player.currentCF.position[1];
           p[2] = (player.currentCF.position[2] ?? 0.25) + 0.5;
+          carried = true;
         }
       }
       const c = Math.cos(angle) * scale;
       const s = Math.sin(angle) * scale;
-      this.models.draw(f.built, new Float32Array([
-        c, s, 0, 0,
-        -s, c, 0, 0,
-        0, 0, scale, 0,
-        p[0], p[1], p[2] ?? 0.25, 1,
-      ]), anim);
+      const modelMatrix = carried
+        ? new Float32Array([
+          c, s, 0, 0,
+          0, 0, scale, 0,
+          -s, c, 0, 0,
+          p[0], p[1], p[2], 1,
+        ])
+        : new Float32Array([
+          c, s, 0, 0,
+          -s, c, 0, 0,
+          0, 0, scale, 0,
+          p[0], p[1], p[2] ?? 0.25, 1,
+        ]);
+      this.models.draw(f.built, modelMatrix, anim);
     }
     gl.bindVertexArray(null);
   }
