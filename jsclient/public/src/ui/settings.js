@@ -15,7 +15,6 @@ export const DEFAULT_SETTINGS = {
   meleeWeapon: 10,
   masterVolume: 255,
   musicVolume: 60,
-  renderScale: 1,
   bindings: {
     moveUp: 'KeyW',
     moveDown: 'KeyS',

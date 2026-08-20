@@ -31,3 +31,21 @@ test('browser menu has no quit-tab control', async () => {
   assert.doesNotMatch(menu, /btnQuit|onQuit/);
   assert.doesNotMatch(main, /menu2\.onQuit|window\.close\(\)/);
 });
+
+test('game browser refreshes automatically without developer instructions', async () => {
+  const menu = await readFile(new URL('../public/src/ui/menu2.js', import.meta.url), 'utf8');
+  assert.match(menu, /SERVER_REFRESH_INTERVAL_MS = 15000/);
+  assert.match(menu, /setInterval/);
+  assert.doesNotMatch(menu, /cargo run --release|connect 127\.0\.0\.1/);
+});
+
+test('options no longer expose resolution scaling', async () => {
+  const [menu, settings, main] = await Promise.all([
+    readFile(new URL('../public/src/ui/menu2.js', import.meta.url), 'utf8'),
+    readFile(new URL('../public/src/ui/settings.js', import.meta.url), 'utf8'),
+    readFile(new URL('../public/src/main.js', import.meta.url), 'utf8'),
+  ]);
+  assert.doesNotMatch(menu, /Resolution scale|optRenderScale/);
+  assert.doesNotMatch(settings, /renderScale/);
+  assert.doesNotMatch(main, /settings\.data\.renderScale/);
+});

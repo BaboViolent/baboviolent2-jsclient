@@ -9,17 +9,15 @@ globalThis.localStorage = {
 
 const { ClientSettings, DEFAULT_SETTINGS } = await import('../public/src/ui/settings.js');
 
-test('client settings persist render, audio, and key bindings', () => {
+test('client settings persist audio and key bindings', () => {
   values.clear();
   const first = new ClientSettings();
   first.data.musicVolume = 42;
-  first.data.renderScale = 0.75;
   first.data.bindings.melee = 'KeyQ';
   first.save();
 
   const restored = new ClientSettings();
   assert.equal(restored.data.musicVolume, 42);
-  assert.equal(restored.data.renderScale, 0.75);
   assert.equal(restored.data.bindings.melee, 'KeyQ');
   assert.equal(restored.data.bindings.moveUp, DEFAULT_SETTINGS.bindings.moveUp);
 });

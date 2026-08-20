@@ -51,7 +51,6 @@ const renderer = new Renderer(gl, assets);
 const settings = new ClientSettings();
 const input = new Input(canvas, settings.data.bindings);
 const mobileSpectator = browserIsMobileSpectator();
-renderer.renderScale = settings.data.renderScale ?? 1;
 const game = new Game(renderer, input);
 game.mobileSpectator = mobileSpectator;
 window.bv2 = { game, renderer, assets, settings };

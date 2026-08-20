@@ -5,13 +5,21 @@ export function configuredServerUrls(env = process.env) {
 
 export async function probeServers(urls, fetchImpl = fetch) {
   const results = await Promise.all(urls.map(async (gameHost) => {
-    const started = performance.now();
+    const endpoint = `${gameHost.replace(/\/$/, '')}/info`;
+    const samples = [];
+    let info = null;
     try {
-      const response = await fetchImpl(`${gameHost.replace(/\/$/, '')}/info`, {
-        signal: AbortSignal.timeout(2000),
-      });
-      if (!response.ok) return null;
-      const info = await response.json();
+      // The first request establishes DNS/TCP/TLS and can make every server look
+      // artificially slow on a fresh process. A second sample reflects the
+      // connection players will actually use.
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const started = performance.now();
+        const response = await fetchImpl(endpoint, { signal: AbortSignal.timeout(2000) });
+        if (!response.ok) continue;
+        info = await response.json();
+        samples.push(Math.max(0, Math.round(performance.now() - started)));
+      }
+      if (!info || samples.length === 0) return null;
       const url = new URL(gameHost);
       return {
         name: info.name ?? 'BV2 Web Server',
@@ -21,11 +29,12 @@ export async function probeServers(urls, fetchImpl = fetch) {
         gameType: info.gameType ?? 0,
         players: info.players ?? 0,
         maxPlayers: info.maxPlayers ?? 16,
-        ping: Math.max(0, Math.round(performance.now() - started)),
+        ping: Math.min(...samples),
       };
     } catch {
       return null;
     }
   }));
-  return results.filter(Boolean).sort((a, b) => a.ping - b.ping || a.name.localeCompare(b.name));
+  return results.filter(Boolean).sort((a, b) =>
+    b.players - a.players || a.ping - b.ping || a.name.localeCompare(b.name));
 }

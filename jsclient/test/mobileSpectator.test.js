@@ -43,3 +43,10 @@ test('mobile UI provides Android send semantics and a scoreboard toggle', async 
   assert.match(main, /e\.key === 'Enter'/);
   assert.match(input, /this\.keys\.has\('Tab'\) \|\| this\.mobileScoreboard/);
 });
+
+test('mobile menu omits map editing and key binding controls', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const menu = await readFile(new URL('../public/src/ui/menu2.js', import.meta.url), 'utf8');
+  assert.match(menu, /this\.mobileSpectator.*data-tab="editor"/s);
+  assert.match(menu, /this\.mobileSpectator \? '' : '<div class="menu-sep">Controls/);
+});

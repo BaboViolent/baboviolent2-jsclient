@@ -41,6 +41,7 @@ const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (c) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 }[c]));
 export const NATIVE_INTRO_DURATION_MS = 3000;
+export const SERVER_REFRESH_INTERVAL_MS = 15000;
 
 export class Menu2 {
   /**
@@ -70,8 +71,13 @@ export class Menu2 {
     this._panelMotion = null;
     this._animatedPanel = null;
     this.profilePreview = null;
+    this.mobileSpectator = Boolean(game.mobileSpectator);
+    this._serverRefreshInFlight = false;
     this._buildDOM();
     this._wireTabs();
+    this._serverRefreshTimer = setInterval(() => {
+      if (!this.root.hidden && this._activeTab === 'browser') void this.refreshServers({ showLoading: false });
+    }, SERVER_REFRESH_INTERVAL_MS);
   }
 
   async loadAssets() {
@@ -92,7 +98,11 @@ export class Menu2 {
     }
     this._buildProfilePanel();
     this._buildBrowserPanel();
-    this._buildEditorPanel();
+    if (this.mobileSpectator) {
+      this.tabBar.querySelector('[data-tab="editor"]')?.remove();
+    } else {
+      this._buildEditorPanel();
+    }
     this._buildOptionsPanel();
     this._buildCreditsPanel();
 
@@ -351,7 +361,6 @@ export class Menu2 {
           <button type="button" class="menu-btn" id="btnRefresh">Refresh</button>
         </div>
         <ul id="serverList" class="menu-listbox"></ul>
-        <p class="menu-hint">Dedicated server: run <code>cargo run --release</code> in <code>server/</code>, then Join <code>127.0.0.1:8080</code>. Console: <code>connect 127.0.0.1 8080</code></p>
       </div>`;
 
     const s = this.settings.data;
@@ -371,12 +380,16 @@ export class Menu2 {
     });
   }
 
-  async refreshServers() {
+  async refreshServers({ showLoading = true } = {}) {
     const list = document.getElementById('serverList');
-    if (!list) return;
-    list.innerHTML = '<li>Loading…</li>';
+    if (!list || this._serverRefreshInFlight) return;
+    this._serverRefreshInFlight = true;
+    if (showLoading || !list.children.length) list.innerHTML = '<li>Loading…</li>';
     try {
       const servers = await (await fetch('/api/servers')).json();
+      servers.sort((a, b) => Number(b.players) - Number(a.players)
+        || Number(a.ping) - Number(b.ping)
+        || String(a.name).localeCompare(String(b.name)));
       if (!servers.length) {
         list.innerHTML = '<li>No servers listed</li>';
         return;
@@ -401,6 +414,8 @@ export class Menu2 {
       });
     } catch (err) {
       list.innerHTML = `<li>Error: ${err.message}</li>`;
+    } finally {
+      this._serverRefreshInFlight = false;
     }
   }
 
@@ -428,31 +443,23 @@ export class Menu2 {
           <input type="range" id="optMaster" class="menu-slider" min="0" max="255"></div>
         <div class="menu-row"><span class="menu-label r">Music volume:</span>
           <input type="range" id="optMusic" class="menu-slider" min="0" max="255"></div>
-        <div class="menu-sep">Rendering</div>
-        <div class="menu-row"><span class="menu-label r">Resolution scale:</span>
-          <select id="optRenderScale" class="menu-edit">
-            <option value="0.5">50%</option><option value="0.75">75%</option>
-            <option value="1">100%</option><option value="1.5">150%</option>
-          </select></div>
-        <div class="menu-sep">Controls</div>
-        <div id="optBindings"></div>
+        ${this.mobileSpectator ? '' : '<div class="menu-sep">Controls</div><div id="optBindings"></div>'}
       </div>`;
 
     const s = this.settings.data;
     document.getElementById('optMaster').value = s.masterVolume;
     document.getElementById('optMusic').value = s.musicVolume;
-    document.getElementById('optRenderScale').value = String(s.renderScale ?? 1);
 
     const bindLabels = {
       moveUp: 'Move up', moveDown: 'Move down', moveLeft: 'Move left',
       moveRight: 'Move right', melee: 'Melee', pickup: 'Pick up',
     };
     const bindings = document.getElementById('optBindings');
-    bindings.innerHTML = Object.entries(bindLabels).map(([action, label]) =>
+    if (bindings) bindings.innerHTML = Object.entries(bindLabels).map(([action, label]) =>
       `<div class="menu-row"><span class="menu-label r">${label}:</span>` +
       `<button type="button" class="menu-btn key-bind" data-bind="${action}">${s.bindings[action]}</button></div>`,
     ).join('');
-    bindings.querySelectorAll('[data-bind]').forEach((button) => {
+    bindings?.querySelectorAll('[data-bind]').forEach((button) => {
       button.addEventListener('click', () => {
         button.textContent = 'Press a key…';
         const capture = (event) => {
@@ -469,15 +476,13 @@ export class Menu2 {
     const sync = () => {
       s.masterVolume = Number(document.getElementById('optMaster').value);
       s.musicVolume = Number(document.getElementById('optMusic').value);
-      s.renderScale = Number(document.getElementById('optRenderScale').value);
       this.settings.save();
       if (this.game.audio?.setMasterVolume) {
         this.game.audio.setMasterVolume(s.masterVolume / 255);
       }
-      this.game.renderer.renderScale = s.renderScale;
       void this.game.audio?.playMusic('Music.ogg', s.musicVolume);
     };
-    this.panels.options.querySelectorAll('input, select').forEach((el) => {
+    this.panels.options.querySelectorAll('input').forEach((el) => {
       el.addEventListener('input', sync);
     });
   }
