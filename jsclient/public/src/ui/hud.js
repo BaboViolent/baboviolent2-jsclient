@@ -486,7 +486,7 @@ export class Hud {
     } else {
       blueVal = game.blueScore ?? 0;
       redVal = game.redScore ?? 0;
-      limit = 999;
+      limit = 50;
     }
 
     const iconSz = Math.round(HUD_FLAG_ICON * u);

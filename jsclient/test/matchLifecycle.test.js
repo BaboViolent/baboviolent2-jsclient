@@ -20,3 +20,13 @@ test('HUD announces blue win, red win, and tie throughout intermission', async (
   assert.match(hud, /Red team wins!/);
   assert.match(hud, /Tie game!/);
 });
+
+test('intermission freezes the clock and deathmatch HUD uses the classic score limit', async () => {
+  const [game, hud] = await Promise.all([
+    readFile(new URL('../public/src/game/game.js', import.meta.url), 'utf8'),
+    readFile(new URL('../public/src/ui/hud.js', import.meta.url), 'utf8'),
+  ]);
+  assert.match(game, /this\.roundState === GAME_PLAYING[\s\S]*?this\.gameTimeLeft = Math\.max/);
+  assert.match(hud, /limit = 50;/);
+  assert.doesNotMatch(hud, /limit = 999;/);
+});

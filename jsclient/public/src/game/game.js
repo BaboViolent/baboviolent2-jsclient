@@ -318,7 +318,7 @@ export class Game {
   update(delay) {
     if (!this.map) return;
     this.time += delay;
-    if (this.ui.playing && !this.ui.menuOpen && !this.ui.consoleActive && !this.ui.chatActive) {
+    if (this.roundState === GAME_PLAYING && this.ui.playing && !this.ui.menuOpen && !this.ui.consoleActive && !this.ui.chatActive) {
       this.gameTimeLeft = Math.max(0, this.gameTimeLeft - delay);
     }
     this.ui.update(delay);
