@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.13](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.12...v0.5.13) (2026-08-20)
+
+
+### Bug Fixes
+
+* **network:** force hosted joins through public WSS ([9f27797](https://github.com/BaboViolent/baboviolent2-jsclient/commit/9f277971e8eb1005d0ba551ba61d2e2e9ca6e3b4))
+
 ## [0.5.12](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.11...v0.5.12) (2026-08-20)
 
 
