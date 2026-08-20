@@ -23,3 +23,11 @@ test('carried flag preserves the native upright DKO transform', async () => {
   assert.match(modelMatrix, /0, 0, scale, 0,/);
   assert.match(renderer, /this\.models\.draw\(f\.built, modelMatrix, anim\);/);
 });
+
+test('native map-misc order draws flags before player bodies and weapons', async () => {
+  const renderer = await readFile(new URL('../public/src/render/renderer.js', import.meta.url), 'utf8');
+  const render = renderer.slice(renderer.indexOf('render(game) {'), renderer.indexOf('playerWeaponMatrix('));
+
+  assert.ok(render.indexOf('this.renderFlags(game, mvp);') < render.indexOf('gl.bindTexture(gl.TEXTURE_2D, player.skinTexture);'));
+  assert.ok(render.indexOf('this.renderFlags(game, mvp);') < render.indexOf('this.renderModels(game, mvp);'));
+});

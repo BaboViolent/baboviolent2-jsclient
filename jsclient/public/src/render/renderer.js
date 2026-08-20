@@ -357,6 +357,12 @@ export class Renderer {
     }
     gl.depthMask(true);
 
+    // GameRender.cpp renders map misc (pods and flags) before players. Keep
+    // that ordering: carried flags intersect their carrier, so drawing them
+    // after the body/weapon makes equal-depth fragments disappear as aim
+    // changes.
+    this.renderFlags(game, mvp);
+
     gl.disable(gl.BLEND);
     gl.uniform1f(this.uniforms.lit, 1);
     gl.bindVertexArray(this.sphere.vao);
@@ -371,7 +377,6 @@ export class Renderer {
     gl.bindVertexArray(null);
 
     this.renderModels(game, mvp);
-    this.renderFlags(game, mvp);
 
     gl.useProgram(this.program);
     gl.uniformMatrix4fv(this.uniforms.mvp, false, mvp);
