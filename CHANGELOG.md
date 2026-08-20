@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.7](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.6...v0.5.7) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ctf:** make carried flags visible ([88ad76c](https://github.com/BaboViolent/baboviolent2-jsclient/commit/88ad76c87eb589c5e08a0929b6c117efe5df94e8))
+
 ## [0.5.6](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.5...v0.5.6) (2026-08-20)
 
 
