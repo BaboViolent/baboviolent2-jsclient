@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.10](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.9...v0.5.10) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ctf:** keep carried flags visible and announce returns ([62c11cc](https://github.com/BaboViolent/baboviolent2-jsclient/commit/62c11cc3d0c2282ad5587e2cfdcf74b3f2c64427))
+
 ## [0.5.9](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.8...v0.5.9) (2026-08-20)
 
 
