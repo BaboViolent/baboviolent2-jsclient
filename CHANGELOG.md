@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.3.1...v0.3.2) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ffa:** remove misleading team colors ([a8329cf](https://github.com/BaboViolent/baboviolent2-jsclient/commit/a8329cfc360dfd219ad84b3a1e3898e3f4a67b01))
+
 ## [0.3.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.3.0...v0.3.1) (2026-08-20)
 
 
