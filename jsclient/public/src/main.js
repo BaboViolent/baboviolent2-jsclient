@@ -278,8 +278,11 @@ function applyChangeFlagState(payload) {
   const oldState = ctf.flagState[flagId];
   if (oldState === newState) return;
   const p = getOrCreatePlayer(playerId);
+  const flagTeam = flagId === 0 ? PLAYER_TEAM_BLUE : PLAYER_TEAM_RED;
 
-  if (oldState === FLAG_DROPPED && newState === FLAG_AT_POD) {
+  // Actor team distinguishes a return from a capture even if the client did
+  // not observe the preceding dropped-state packet.
+  if (newState === FLAG_AT_POD && p.teamID === flagTeam) {
     p.returns = (p.returns ?? 0) + 1;
     game.ui.addEvent('\x03> ' + p.name + ' returned the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
     if (p.teamID === game.thisPlayer.teamID) void game.audio.play2D('return.wav', 255);
