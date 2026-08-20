@@ -577,14 +577,21 @@ export class Renderer {
       const f = flags[i];
       if (!f.built) continue;
       const carrier = game.ctf.flagState[i];
+      const p = [...f.pos];
       let angle = 0;
       if (carrier >= 0) {
-        const p = game.players.find((pl) => pl.playerID === carrier);
-        if (p) angle = (p.currentCF.angle - 90) * (Math.PI / 180);
+        const player = game.players.find((pl) => pl.playerID === carrier);
+        if (player) {
+          angle = (player.currentCF.angle - 90) * (Math.PI / 180);
+          // Do not bury a carried flag inside the babo model. Mount it just
+          // behind and above the carrier so pickup state is immediately clear.
+          p[0] -= Math.cos(angle) * 0.38;
+          p[1] -= Math.sin(angle) * 0.38;
+          p[2] = (player.currentCF.position[2] ?? 0.25) + 0.18;
+        }
       }
       const c = Math.cos(angle) * scale;
       const s = Math.sin(angle) * scale;
-      const p = f.pos;
       this.models.draw(f.built, new Float32Array([
         c, s, 0, 0,
         -s, c, 0, 0,

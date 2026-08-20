@@ -508,6 +508,16 @@ export class Hud {
       flagRow(redTex, redVal, '\x04');
       flagRow(blueTex, blueVal, '\x01');
     }
+
+    const carriedFlag = game.ctf?.carrierFlagId?.(game.thisPlayer.playerID) ?? -1;
+    if (carriedFlag >= 0) {
+      const label = 'YOU HAVE THE FLAG';
+      const labelSize = Math.round(18 * u);
+      const labelY = rowY + Math.round(2 * u);
+      const tex = carriedFlag === 0 ? blueTex : redTex;
+      if (tex) this.rectNearest(x, labelY, iconSz, iconSz, [1, 1, 1, 1], tex);
+      this.text(labelSize, x + iconSz + Math.round(4 * sx), labelY + Math.round(5 * u), label, TEXT_COLORS[9]);
+    }
   }
 
   /** @deprecated use renderTopLeftHud */
