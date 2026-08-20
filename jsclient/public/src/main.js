@@ -319,7 +319,7 @@ function handleNetPacket(typeId, payload) {
     }
     case NET.SVCL_SERVER_INFO: {
       const info = Bv2Client.parseServerInfo(payload);
-      game.gameType = info.gameType;
+      game.setGameType(info.gameType);
       game.blueScore = info.blueScore;
       game.redScore = info.redScore;
       if (info.gameType === GAME_TYPE_CTF) {
