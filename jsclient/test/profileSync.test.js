@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Bv2Client } from '../public/src/net/client.js';
 import {
   decodeFrame, parsePlayerChangeName, parsePlayerHit, parsePlayerUpdateSkin,
-  playerChangeName, playerUpdateSkin,
+  playerChangeName, playerInfo, playerUpdateSkin,
 } from '../public/src/net/packet.js';
 import { NET } from '../public/src/net/protocol.js';
 
@@ -25,6 +25,18 @@ test('profile name and appearance have fixed bounded vectors', () => {
       blue: skinFrame.payload.subarray(14, 17),
     },
   });
+});
+
+test('profile names preserve BV2 colours and legacy glyphs on UTF-8 boundaries', () => {
+  const decorated = '\x03Red \u009b King';
+  const changed = decodeFrame(playerChangeName(4, decorated));
+  assert.equal(parsePlayerChangeName(changed.payload).name, decorated);
+
+  const crossing = `${'a'.repeat(29)}\u009bé`;
+  const info = decodeFrame(playerInfo(4, crossing));
+  const decoded = new TextDecoder().decode(info.payload.subarray(17, 49)).replace(/\0.*$/s, '');
+  assert.equal(decoded, `${'a'.repeat(29)}\u009b`);
+  assert.equal(decoded.includes('\ufffd'), false);
 });
 
 test('rapid profile edits coalesce to the latest reliable control packet', async () => {

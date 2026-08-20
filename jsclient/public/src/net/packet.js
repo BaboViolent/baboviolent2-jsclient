@@ -59,6 +59,25 @@ export function writeFixedStr16(str) {
   return out;
 }
 
+export function encodeUtf8Bounded(str, maximum) {
+  const encoder = new TextEncoder();
+  const chunks = [];
+  let length = 0;
+  for (const character of str) {
+    const bytes = encoder.encode(character);
+    if (length + bytes.length > maximum) break;
+    chunks.push(bytes);
+    length += bytes.length;
+  }
+  const out = new Uint8Array(length);
+  let offset = 0;
+  for (const bytes of chunks) {
+    out.set(bytes, offset);
+    offset += bytes.length;
+  }
+  return out;
+}
+
 export function readFixedStr(bytes, off, len) {
   let end = off + len;
   for (let i = off; i < off + len && i < bytes.length; i++) {
@@ -83,7 +102,7 @@ export function playerInfo(playerId, name, username = '', password = '') {
   const p = new Uint8Array(122);
   p[0] = playerId & 0xff;
   const enc = new TextEncoder();
-  p.set(enc.encode(name).subarray(0, 31), 17);
+  p.set(encodeUtf8Bounded(name, 31), 17);
   p.set(enc.encode(username).subarray(0, 20), 49);
   p.set(enc.encode(password).subarray(0, 31), 70);
   return encodeFrame(NET.CLSV_SVCL_PLAYER_INFO, p);
@@ -113,7 +132,7 @@ export function teamRequest(playerId, teamId) {
 export function playerChangeName(playerId, name) {
   const p = new Uint8Array(33);
   p[0] = playerId & 0xff;
-  p.set(new TextEncoder().encode(name).subarray(0, 31), 1);
+  p.set(encodeUtf8Bounded(name, 31), 1);
   return encodeFrame(NET.CLSV_SVCL_PLAYER_CHANGE_NAME, p);
 }
 

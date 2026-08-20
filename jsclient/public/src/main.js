@@ -293,35 +293,36 @@ function applyChangeFlagState(payload) {
   if (flagId > 1) return;
   const ctf = game.ctf;
   const oldState = ctf.flagState[flagId];
-  if (oldState === newState) return;
   const p = getOrCreatePlayer(playerId);
   const flagTeam = flagId === 0 ? PLAYER_TEAM_BLUE : PLAYER_TEAM_RED;
 
   // Actor team distinguishes a return from a capture even if the client did
   // not observe the preceding dropped-state packet.
-  if (newState === FLAG_AT_POD && p.teamID === flagTeam) {
-    p.returns = (p.returns ?? 0) + 1;
-    game.ui.addEvent('\x03> ' + p.name + ' returned the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
-    if (p.teamID === game.thisPlayer.teamID) void game.audio.play2D('return.wav', 255);
-  } else if ((oldState === FLAG_DROPPED || oldState === FLAG_AT_POD) && newState >= 0) {
-    p.flagAttempts = (p.flagAttempts ?? 0) + 1;
-    game.ui.addEvent('\x03> ' + p.name + ' took the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
-    void game.audio.play2D(p.teamID === game.thisPlayer.teamID ? 'ftook.wav' : 'etook.wav', 255);
-  } else if (newState === FLAG_AT_POD) {
-    if (flagId === 0) {
-      game.ctf.redWin += 1;
-      game.redScore = game.ctf.redWin;
-      game.ui.addEvent('\x04' + p.name + ' \x08scores for the Red team!');
-      void game.audio.play2D('cheerRedTeam.wav', 255);
-    } else {
-      game.ctf.blueWin += 1;
-      game.blueScore = game.ctf.blueWin;
-      game.ui.addEvent('\x01' + p.name + ' \x08scores for the Blue team!');
-      void game.audio.play2D('cheerBlueTeam.wav', 255);
-    }
-    p.score = (p.score ?? 0) + 1;
-    if (game.ctf.blueWin >= SV_WIN_LIMIT || game.ctf.redWin >= SV_WIN_LIMIT) {
-      game.ui.addEvent('\x03Match over — press Esc for menu');
+  if (oldState !== newState) {
+    if (newState === FLAG_AT_POD && p.teamID === flagTeam) {
+      p.returns = (p.returns ?? 0) + 1;
+      game.ui.addEvent('\x03> ' + p.name + ' returned the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
+      if (p.teamID === game.thisPlayer.teamID) void game.audio.play2D('return.wav', 255);
+    } else if ((oldState === FLAG_DROPPED || oldState === FLAG_AT_POD) && newState >= 0) {
+      p.flagAttempts = (p.flagAttempts ?? 0) + 1;
+      game.ui.addEvent('\x03> ' + p.name + ' took the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
+      void game.audio.play2D(p.teamID === game.thisPlayer.teamID ? 'ftook.wav' : 'etook.wav', 255);
+    } else if (newState === FLAG_AT_POD) {
+      if (flagId === 0) {
+        game.ctf.redWin += 1;
+        game.redScore = game.ctf.redWin;
+        game.ui.addEvent('\x04' + p.name + ' \x08scores for the Red team!');
+        void game.audio.play2D('cheerRedTeam.wav', 255);
+      } else {
+        game.ctf.blueWin += 1;
+        game.blueScore = game.ctf.blueWin;
+        game.ui.addEvent('\x01' + p.name + ' \x08scores for the Blue team!');
+        void game.audio.play2D('cheerBlueTeam.wav', 255);
+      }
+      p.score = (p.score ?? 0) + 1;
+      if (game.ctf.blueWin >= SV_WIN_LIMIT || game.ctf.redWin >= SV_WIN_LIMIT) {
+        game.ui.addEvent('\x03Match over — press Esc for menu');
+      }
     }
   }
 
