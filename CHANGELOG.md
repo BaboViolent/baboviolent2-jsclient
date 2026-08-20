@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.2.0...v0.2.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **champion:** synchronize the round timer ([6bdb889](https://github.com/BaboViolent/baboviolent2-jsclient/commit/6bdb889ba762ef31f008d95c0065e49419378d95))
+
 ## [0.2.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.1.9...v0.2.0) (2026-08-20)
 
 
