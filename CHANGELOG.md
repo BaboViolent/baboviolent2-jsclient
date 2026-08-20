@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.18](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.17...v0.5.18) (2026-08-20)
+
+
+### Bug Fixes
+
+* **projectiles:** keep nearby live grenades visible ([68abb22](https://github.com/BaboViolent/baboviolent2-jsclient/commit/68abb22ce860e1d48ee076a1687b83b01ae3723e))
+
 ## [0.5.17](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.16...v0.5.17) (2026-08-20)
 
 
