@@ -649,7 +649,7 @@ export class Hud {
       } else if (isTDM) {
         this.textCenter(fontSz, col.score, y + padY, String(p.score ?? 0), TEXT_COLORS[9]);
       }
-      const pingLabel = game.exploreMode ? '-33' : String(p.ping ?? 0);
+      const pingLabel = game.exploreMode ? '-' : String(p.ping ?? 0);
       this.textCenter(fontSz, col.ping, y + padY, pingLabel, pingColor(game.exploreMode ? -1 : (p.ping ?? 0)));
       y += rowH;
     };
