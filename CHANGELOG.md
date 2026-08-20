@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.1...v0.5.2) (2026-08-20)
+
+
+### Bug Fixes
+
+* **scoreboard:** remove disconnected players ([8f9bf7b](https://github.com/BaboViolent/baboviolent2-jsclient/commit/8f9bf7bcb308849b3c38ce9318100573a7191169))
+
 ## [0.5.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.0...v0.5.1) (2026-08-20)
 
 
