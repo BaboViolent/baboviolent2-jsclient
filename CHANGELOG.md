@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.14](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.13...v0.5.14) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ui:** match native overhead name rendering ([65b7af1](https://github.com/BaboViolent/baboviolent2-jsclient/commit/65b7af1400ddc6ef4592f31e0ae7eca91980ac3c))
+
 ## [0.5.13](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.12...v0.5.13) (2026-08-20)
 
 
