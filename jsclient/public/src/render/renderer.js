@@ -363,8 +363,14 @@ export class Renderer {
     // changes.
     this.renderFlags(game, mvp);
 
-    gl.disable(gl.BLEND);
+    // renderFlags uses the separate DKO model program. Restore the world
+    // program before drawing textured player spheres.
+    gl.useProgram(this.program);
+    gl.uniformMatrix4fv(this.uniforms.mvp, false, mvp);
+    gl.uniformMatrix4fv(this.uniforms.model, false, this.identity);
     gl.uniform1f(this.uniforms.lit, 1);
+
+    gl.disable(gl.BLEND);
     gl.bindVertexArray(this.sphere.vao);
     for (const player of game.players) {
       if (player.status !== PLAYER_STATUS_ALIVE || !player.skinTexture) continue;

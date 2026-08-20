@@ -15,6 +15,41 @@ html, body {
   touch-action: none;
 }
 
+/* Dynamic status copy uses browser vector glyphs instead of the 64px game
+   atlas, so large countdown and spectator labels stay crisp at every DPR. */
+.status-text-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  color: #fff;
+  font-family: "Arial Black", "Segoe UI", sans-serif;
+  font-weight: 800;
+  text-align: center;
+  text-shadow: 0 2px 0 #000, 2px 0 0 #000, 0 -2px 0 #000, -2px 0 0 #000;
+  -webkit-font-smoothing: antialiased;
+}
+
+.spawn-status-text {
+  position: absolute;
+  top: 33.333vh;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  font-size: clamp(42px, 7vw, 80px);
+  line-height: 1;
+}
+
+.spectator-status-text {
+  position: absolute;
+  top: 3.333vh;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  font-size: clamp(18px, 2.4vw, 28px);
+  line-height: 1;
+}
+
 /* Boot screens — IntroScreen.cpp */
 .boot-screen[hidden] {
   display: none !important;

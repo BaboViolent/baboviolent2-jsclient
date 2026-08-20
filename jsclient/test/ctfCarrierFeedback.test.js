@@ -30,4 +30,5 @@ test('native map-misc order draws flags before player bodies and weapons', async
 
   assert.ok(render.indexOf('this.renderFlags(game, mvp);') < render.indexOf('gl.bindTexture(gl.TEXTURE_2D, player.skinTexture);'));
   assert.ok(render.indexOf('this.renderFlags(game, mvp);') < render.indexOf('this.renderModels(game, mvp);'));
+  assert.match(render, /this\.renderFlags\(game, mvp\);[\s\S]*gl\.useProgram\(this\.program\);[\s\S]*gl\.bindTexture\(gl\.TEXTURE_2D, player\.skinTexture\);/);
 });

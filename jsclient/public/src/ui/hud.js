@@ -62,7 +62,6 @@ const HUD_TIMER_FONT = 48;
 const HUD_FLAG_ICON = 28;
 const HUD_FLAG_SCORE_FONT = 36;
 const HUD_MINIMAP_SIZE = 128;
-const RESPAWN_COUNTDOWN_FONT = 80;
 
 const FS = `#version 300 es
 precision highp float;
@@ -279,19 +278,30 @@ export class Hud {
     const h = gl.canvas.height;
     const { sx, sy } = this.refScale(gl);
     const wait = player.timeToSpawn ?? 0;
-    if (wait > 0) {
-      // Give the authored 64px atlas more screen pixels, as with overhead
-      // names, and align its anchor to physical pixels to avoid soft edges.
-      this.textCenter(
-        RESPAWN_COUNTDOWN_FONT * sx,
-        Math.round(w * 0.5),
-        Math.round(200 * sy),
-        `Spawn in ${formatCountdown(wait)}`,
-        TEXT_COLORS[9],
-      );
-    } else {
+    if (wait <= 0) {
       this.textCenter(32 * sx, w * 0.5, 200 * sy, 'Press [[Mouse1]] to respawn', TEXT_COLORS[9]);
     }
+  }
+
+  updateVectorStatus(game) {
+    const root = document.getElementById('statusTextOverlay');
+    const spawn = document.getElementById('spawnStatusText');
+    const spectator = document.getElementById('spectatorStatusText');
+    if (!root || !spawn || !spectator) return;
+
+    const wait = game.thisPlayer?.timeToSpawn ?? 0;
+    const showSpawn = !game.ui.menuOpen
+      && !game.editorMode
+      && !game.isSpectating
+      && game.thisPlayer?.status === PLAYER_STATUS_DEAD
+      && game.thisPlayer.life <= 0
+      && wait > 0;
+    const showSpectator = !game.ui.menuOpen && !game.editorMode && game.isSpectating;
+    spawn.hidden = !showSpawn;
+    spectator.hidden = !showSpectator;
+    root.hidden = !showSpawn && !showSpectator;
+    if (showSpawn) spawn.textContent = `Spawn in ${formatCountdown(wait)}`;
+    if (showSpectator) spectator.textContent = 'SPECTATOR — move keys to fly, wheel to zoom';
   }
 
   renderMatchResult(game) {
@@ -755,6 +765,7 @@ export class Hud {
     const dpr = gl.canvas.width / gl.canvas.clientWidth;
     const scale = Math.max(1, dpr);
     const ui = game.ui;
+    this.updateVectorStatus(game);
     this.begin();
 
     if (ui.menuOpen) {
@@ -781,8 +792,6 @@ export class Hud {
       this.renderVerticalBars(player, weapon, sx, sy, blinkOn);
       this.renderReloadBar(game, sx, sy, blinkOn);
       this.renderThrowableIcons(player, weapon, sx, sy);
-    } else {
-      this.textCenter(22 * sx, 400 * sx, 20 * sy, 'SPECTATOR \x08move keys to fly, wheel to zoom', TEXT_COLORS[9]);
     }
     if (!ui.showScoreboard) {
       this.renderTopLeftHud(game, sx, sy);
