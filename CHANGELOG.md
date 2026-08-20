@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.4.0...v0.5.0) (2026-08-20)
+
+
+### Features
+
+* **sandbox:** add direct local play entry ([cd65e63](https://github.com/BaboViolent/baboviolent2-jsclient/commit/cd65e63529ef73591617397d474f7950e052bde3))
+
 ## [0.4.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.3.2...v0.4.0) (2026-08-20)
 
 
