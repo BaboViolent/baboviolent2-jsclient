@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.12](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.11...v0.5.12) (2026-08-20)
+
+
+### Bug Fixes
+
+* **client:** verify join routes and isolate preview textures ([33b4606](https://github.com/BaboViolent/baboviolent2-jsclient/commit/33b46066985b18689251114accd7f101e26308f7))
+
 ## [0.5.11](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.10...v0.5.11) (2026-08-20)
 
 
