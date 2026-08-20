@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.24](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.23...v0.5.24) (2026-08-20)
+
+
+### Bug Fixes
+
+* **hud:** hide status labels behind scoreboard ([ff21136](https://github.com/BaboViolent/baboviolent2-jsclient/commit/ff21136e6cf024c16d88a10a92baa2430f9b886f))
+
 ## [0.5.23](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.22...v0.5.23) (2026-08-20)
 
 
