@@ -168,7 +168,8 @@ export class ProfilePreview {
   }
 
   async load() {
-    this.shadowTex = await this.assets.loadTexture('main/textures/BaboShadow.tga', { repeat: false, mipmap: false });
+    const shadow = await this.assets.loadImage('main/textures/BaboShadow.tga');
+    this.shadowTex = createTexture(this.gl, shadow, { repeat: false, mipmap: false });
   }
 
   async updateSkin(skinName, decals) {

@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-
 import { readFile } from 'node:fs/promises';
 
 import { advancePreviewRotation, PROFILE_PREVIEW_FOV } from '../public/src/ui/profilePreview.js';
@@ -11,6 +10,13 @@ test('profile preview uses a closer view without a hidden-layout fallback', asyn
   assert.match(source, /getBoundingClientRect\(\)/);
   assert.match(source, /if \(cw <= 0 \|\| ch <= 0\) return/);
   assert.doesNotMatch(source, /clientWidth \|\| 256/);
+});
+
+test('profile preview creates its shadow texture in the preview WebGL context', async () => {
+  const source = await readFile(new URL('../public/src/ui/profilePreview.js', import.meta.url), 'utf8');
+  assert.match(source, /assets\.loadImage\('main\/textures\/BaboShadow\.tga'\)/);
+  assert.match(source, /createTexture\(this\.gl, shadow/);
+  assert.doesNotMatch(source, /assets\.loadTexture\('main\/textures\/BaboShadow\.tga'/);
 });
 
 test('profile preview idles like native then accepts movement rotation', () => {

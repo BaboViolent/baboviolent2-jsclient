@@ -21,10 +21,18 @@ export async function probeServers(urls, fetchImpl = fetch) {
       }
       if (!info || samples.length === 0) return null;
       const url = new URL(gameHost);
+      const wsRoute = new URL('/ws', url);
+      const wsCheck = await fetchImpl(wsRoute, { signal: AbortSignal.timeout(2000) });
+      // A WebSocket endpoint rejects an ordinary HTTP request with 400/426.
+      // A 404 (or an unreachable public port) means Join cannot reach it.
+      if (wsCheck.status !== 400 && wsCheck.status !== 426) return null;
+      const wsUrl = new URL(wsRoute);
+      wsUrl.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
       return {
         name: info.name ?? 'BV2 Web Server',
         ip: url.hostname,
         port: Number(url.port) || (url.protocol === 'https:' ? 443 : 80),
+        wsUrl: wsUrl.toString(),
         map: info.map ?? '',
         gameType: info.gameType ?? 0,
         players: info.players ?? 0,

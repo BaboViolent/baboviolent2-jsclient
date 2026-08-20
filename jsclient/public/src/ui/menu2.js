@@ -4,7 +4,6 @@ import { ProfilePreview } from './profilePreview.js';
 import { attachBv2TextInput } from './colorInput.js';
 import { MapEditor } from './mapEditor.js';
 import { createMenuPanelMotion, stepMenuPanelMotion } from './menuPanelMotion.js';
-import { formatHostPort } from '../net/joinTarget.js';
 
 const TABS = [
   { id: 'profile', label: 'Profile' },
@@ -400,20 +399,20 @@ export class Menu2 {
         return;
       }
       list.innerHTML = servers.map((sv) =>
-        `<li data-ip="${escapeHtml(sv.ip)}" data-port="${Number(sv.port)}" data-name="${escapeHtml(sv.name)}"><strong>${escapeHtml(sv.name)}</strong> — ${escapeHtml(sv.map)} (${Number(sv.players)}/${Number(sv.maxPlayers)}) ping ${Number(sv.ping)}ms</li>`,
+        `<li data-ws-url="${escapeHtml(sv.wsUrl)}" data-name="${escapeHtml(sv.name)}"><strong>${escapeHtml(sv.name)}</strong> — ${escapeHtml(sv.map)} (${Number(sv.players)}/${Number(sv.maxPlayers)}) ping ${Number(sv.ping)}ms</li>`,
       ).join('');
-      list.querySelectorAll('li[data-ip]').forEach((li) => {
+      list.querySelectorAll('li[data-ws-url]').forEach((li) => {
         li.addEventListener('click', () => {
           const s = this.settings.data;
-          document.getElementById('joinIP').value = formatHostPort(li.dataset.ip, li.dataset.port);
-          s.lastIP = li.dataset.ip;
-          s.lastPort = Number(li.dataset.port);
+          document.getElementById('joinIP').value = li.dataset.wsUrl;
+          s.lastIP = li.dataset.wsUrl;
+          s.lastPort = 0;
           this.settings.save();
         });
         li.addEventListener('dblclick', () => {
           if (this.onJoin) {
             const s = this.settings.data;
-            void this.onJoin(li.dataset.ip, Number(li.dataset.port), s.joinPassword ?? '', li.dataset.name ?? '');
+            void this.onJoin(li.dataset.wsUrl, null, s.joinPassword ?? '', li.dataset.name ?? '');
           }
         });
       });
