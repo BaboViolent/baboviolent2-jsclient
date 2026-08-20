@@ -22,6 +22,7 @@ import { WEAPON_FLAME_THROWER, WEAPON_GRENADE, SV_WIN_LIMIT, SV_TIME_TO_SPAWN, P
 import { Player } from './game/player.js';
 import { PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD } from './game/constants.js';
 import { formatCountdown } from './ui/timeFormat.js';
+import { browserIsMobileSpectator, MobileSpectatorControls } from './mobile.js';
 
 const canvas = document.getElementById('view');
 const hud = document.getElementById('hud');
@@ -38,6 +39,7 @@ const btnAutoTeam = document.getElementById('btnAutoTeam');
 const btnDisconnect = document.getElementById('btnDisconnect');
 const btnMainMenu = document.getElementById('btnMainMenu');
 const worldEditorRoot = document.getElementById('worldEditor');
+const mobileControlsRoot = document.getElementById('mobileSpectatorControls');
 
 const HELP_DEFAULT = 'WASD move · LMB shoot · RMB grenade · MMB molotov · Space melee · F pickup · Tab scores · T chat · ` console · Esc menu';
 const HELP_EXPLORE = 'WASD move · LMB shoot · RMB grenade · MMB molotov · Space melee · M / [ ] map · Esc menu';
@@ -52,9 +54,18 @@ const assets = new AssetCache(gl);
 const renderer = new Renderer(gl, assets);
 const settings = new ClientSettings();
 const input = new Input(canvas, settings.data.bindings);
+const mobileSpectator = browserIsMobileSpectator();
 renderer.renderScale = settings.data.renderScale ?? 1;
 const game = new Game(renderer, input);
 window.bv2 = { game, renderer, assets, settings };
+document.body.classList.toggle('mobile-spectator', mobileSpectator);
+const mobileControls = new MobileSpectatorControls(mobileControlsRoot, input, {
+  onChat: () => {
+    if (!sessionActive || !game.isSpectating) return;
+    game.ui.openChat(false);
+    syncTextInput();
+  },
+});
 
 input.onFirstGesture(() => game.audio.resume());
 
@@ -531,6 +542,10 @@ function disconnectOnline() {
  * is used after timer completion.
  */
 function joinTeamOnline(teamId) {
+  if (mobileSpectator && teamId !== PLAYER_TEAM_SPECTATOR) {
+    game.ui.log('\x03Mobile clients are spectator-only');
+    return;
+  }
   const p = game.thisPlayer;
   const wasSpectating = game.isSpectating;
   p.teamID = teamId;
@@ -616,14 +631,20 @@ async function startOnlinePlay(host, port, password) {
   // Joins land in spectator until a team is picked (Player.cpp:112).
   game.enterSpectator();
   game.ui.playing = true;
-  game.ui.menuOpen = true;
+  game.ui.menuOpen = !mobileSpectator;
   hud.textContent = '';
   menu2.hide();
   menu2.setSessionActive(true);
   updateOverlayHelp();
   updateIngameMenuLabels();
-  showIngameMenu();
-  game.ui.log('\x03Connected — spectating. Pick a team to join, or Esc to fly the map.');
+  if (mobileSpectator) {
+    resumeGame();
+    mobileControls.setVisible(true);
+    game.ui.log('\x03Connected — mobile spectator mode. Fly, zoom, and chat with touch controls.');
+  } else {
+    showIngameMenu();
+    game.ui.log('\x03Connected — spectating. Pick a team to join, or Esc to fly the map.');
+  }
 }
 
 function mapBase(file) {
@@ -802,6 +823,7 @@ function resumeGame() {
   overlay.hidden = false;
   canvas.style.cursor = 'crosshair';
   canvas.focus();
+  mobileControls.setVisible(mobileSpectator && game.isSpectating);
 }
 
 function showIngameMenu() {
@@ -810,6 +832,7 @@ function showIngameMenu() {
   overlay.hidden = true;
   updateIngameMenuLabels();
   canvas.style.cursor = 'default';
+  mobileControls.setVisible(false);
 }
 
 function hideIngameMenu() {
@@ -842,6 +865,7 @@ function endSession() {
   menu2.setSessionActive(false);
   game.audio.stopMusic();
   overlay.hidden = true;
+  mobileControls.setVisible(false);
   updateOverlayHelp();
 }
 
@@ -854,7 +878,7 @@ async function startLocalPlay() {
   settings.applyToPlayer(game.thisPlayer);
   game.exploreMode = true;
   game.gameType = settings.data.exploreGameType ?? GAME_TYPE_DM;
-  game.thisPlayer.teamID = PLAYER_TEAM_BLUE;
+  game.thisPlayer.teamID = mobileSpectator ? PLAYER_TEAM_SPECTATOR : PLAYER_TEAM_BLUE;
   await game.setWeapon(game.thisPlayer, settings.data.primaryWeapon);
   await game.setMeleeWeapon(game.thisPlayer, settings.data.meleeWeapon);
   const mapFile = settings.data.exploreMap || mapNames[0];
@@ -863,7 +887,8 @@ async function startLocalPlay() {
     await switchMap(base);
   } else {
     game.initGameMode();
-    game.spawnPlayer(game.thisPlayer);
+    if (mobileSpectator) game.enterSpectator();
+    else game.spawnPlayer(game.thisPlayer);
   }
   sessionActive = true;
   game.ui.playing = true;
@@ -873,6 +898,7 @@ async function startLocalPlay() {
   overlay.hidden = false;
   canvas.style.cursor = 'crosshair';
   canvas.focus();
+  mobileControls.setVisible(mobileSpectator);
   menu2.setSessionActive(true);
   updateOverlayHelp();
   updateIngameMenuLabels();
@@ -880,6 +906,10 @@ async function startLocalPlay() {
 }
 
 btnAutoTeam.addEventListener('click', () => {
+  if (mobileSpectator) {
+    game.ui.log('\x03Mobile clients are spectator-only');
+    return;
+  }
   const blue = game.players.filter((p) => p.teamID === PLAYER_TEAM_BLUE).length;
   const red = game.players.filter((p) => p.teamID === PLAYER_TEAM_RED).length;
   const teamId = blue <= red ? PLAYER_TEAM_BLUE : PLAYER_TEAM_RED;

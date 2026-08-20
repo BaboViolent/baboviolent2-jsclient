@@ -348,8 +348,14 @@ export class Menu2 {
         `<li data-ip="${escapeHtml(sv.ip)}" data-port="${Number(sv.port)}"><strong>${escapeHtml(sv.name)}</strong> — ${escapeHtml(sv.map)} (${Number(sv.players)}/${Number(sv.maxPlayers)}) ping ${Number(sv.ping)}ms</li>`,
       ).join('');
       list.querySelectorAll('li[data-ip]').forEach((li) => {
-        li.addEventListener('dblclick', () => {
+        li.addEventListener('click', () => {
+          const s = this.settings.data;
           document.getElementById('joinIP').value = `${li.dataset.ip}:${li.dataset.port}`;
+          s.lastIP = li.dataset.ip;
+          s.lastPort = Number(li.dataset.port);
+          this.settings.save();
+        });
+        li.addEventListener('dblclick', () => {
           if (this.onJoin) {
             const s = this.settings.data;
             void this.onJoin(li.dataset.ip, Number(li.dataset.port), s.joinPassword ?? '');

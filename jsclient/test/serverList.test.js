@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { configuredServerUrls, probeServers } from '../serverList.js';
+import { DEFAULT_SETTINGS } from '../public/src/ui/settings.js';
+
+test('fresh clients default to the North Carolina CTF server', () => {
+  assert.equal(DEFAULT_SETTINGS.lastIP, 'nc-ctf.baboviolent.net');
+  assert.equal(DEFAULT_SETTINGS.lastPort, 443);
+});
 
 test('server list accepts comma-separated live info endpoints', () => {
   assert.deepEqual(

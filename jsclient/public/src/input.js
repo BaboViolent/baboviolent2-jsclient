@@ -7,6 +7,7 @@ export class Input {
     /** Edge-triggered mouse buttons (DKI_DOWN), consumed once per frame. */
     this.mousePressed = new Set();
     this.wheelDelta = 0;
+    this.touchMoves = new Set();
     this.tabDown = false;
     this.bindings = bindings;
 
@@ -56,12 +57,17 @@ export class Input {
   }
 
   setBindings(bindings) { this.bindings = bindings; }
+  setTouchMove(direction, active) {
+    if (active) this.touchMoves.add(direction);
+    else this.touchMoves.delete(direction);
+  }
+  addTouchZoom(direction) { this.wheelDelta += direction; }
   bound(action, fallback) { return this.bindings[action] ?? fallback; }
 
-  get moveUp() { return this.keys.has(this.bound('moveUp', 'KeyW')) || this.keys.has('ArrowUp'); }
-  get moveDown() { return this.keys.has(this.bound('moveDown', 'KeyS')) || this.keys.has('ArrowDown'); }
-  get moveLeft() { return this.keys.has(this.bound('moveLeft', 'KeyA')) || this.keys.has('ArrowLeft'); }
-  get moveRight() { return this.keys.has(this.bound('moveRight', 'KeyD')) || this.keys.has('ArrowRight'); }
+  get moveUp() { return this.touchMoves.has('up') || this.keys.has(this.bound('moveUp', 'KeyW')) || this.keys.has('ArrowUp'); }
+  get moveDown() { return this.touchMoves.has('down') || this.keys.has(this.bound('moveDown', 'KeyS')) || this.keys.has('ArrowDown'); }
+  get moveLeft() { return this.touchMoves.has('left') || this.keys.has(this.bound('moveLeft', 'KeyA')) || this.keys.has('ArrowLeft'); }
+  get moveRight() { return this.touchMoves.has('right') || this.keys.has(this.bound('moveRight', 'KeyD')) || this.keys.has('ArrowRight'); }
 
   /** k_shoot — Mouse1, hold to fire primary weapon. */
   get shoot() { return (this.mouse.buttons & 1) !== 0; }

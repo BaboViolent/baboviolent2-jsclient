@@ -26,8 +26,8 @@ export const DEFAULT_SETTINGS = {
   },
   exploreMap: '',
   exploreGameType: 0,
-  lastIP: '127.0.0.1',
-  lastPort: 8080,
+  lastIP: 'nc-ctf.baboviolent.net',
+  lastPort: 443,
   joinPassword: '',
   host: {
     name: 'BV2 Web Server', password: '', map: 'CTF-BurialMound',
