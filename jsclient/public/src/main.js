@@ -11,7 +11,7 @@ import {
   GAME_TYPE_NAMES, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, GAME_PLAYING,
   PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, PLAYER_TEAM_DISCONNECTED, CHAT_TEAM_ALL,
 } from './game/constants.js';
-import { expandCaretColors } from './ui/colorInput.js';
+import { expandCaretColors, normalizeBv2Text } from './ui/colorInput.js';
 import { loadBitmapFont, renderBitmapText } from './ui/bitmapText.js';
 import { Bv2Client, NET_PLAYER_STATUS_ALIVE, NET_PLAYER_STATUS_DEAD } from './net/client.js';
 import { NET } from './net/protocol.js';
@@ -779,14 +779,57 @@ function syncTextInput() {
   }
 }
 
+function syncTypedBv2Text() {
+  const caret = textInput.selectionStart ?? textInput.value.length;
+  const normalizedCaret = normalizeBv2Text(textInput.value.slice(0, caret)).length;
+  const normalized = normalizeBv2Text(textInput.value);
+  textInput.value = normalized;
+  game.ui.inputBuffer = normalized;
+  textInput.setSelectionRange(normalizedCaret, normalizedCaret);
+}
+
 textInput.addEventListener('input', () => {
-  game.ui.inputBuffer = textInput.value;
+  syncTypedBv2Text();
 });
+let textInputAltValue = -2;
 textInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Alt') {
+    textInputAltValue = -1;
+    e.stopPropagation();
+    return;
+  }
+  if (e.altKey) {
+    const match = /^(?:Digit|Numpad)(\d)$/.exec(e.code);
+    if (match) {
+      e.preventDefault();
+      e.stopPropagation();
+      const digit = Number(match[1]);
+      textInputAltValue = textInputAltValue < 0 ? digit : textInputAltValue * 10 + digit;
+      return;
+    }
+  }
   // This focused input owns text-entry keys: stopping propagation keeps the
   // player from moving/shooting, so submit/cancel must also happen here.
   const code = e.key === 'Enter' ? 'Enter' : e.code;
   if (game.ui.handleTextInputKey(code)) e.preventDefault();
+  e.stopPropagation();
+});
+textInput.addEventListener('keyup', (e) => {
+  if (e.key !== 'Alt') return;
+  if (textInputAltValue >= 0) {
+    const start = textInput.selectionStart ?? textInput.value.length;
+    const end = textInput.selectionEnd ?? start;
+    const code = textInputAltValue > 0xffff ? textInputAltValue & 0xffff : textInputAltValue;
+    if (code >= 32 && code <= 159) {
+      textInput.value = textInput.value.slice(0, start)
+        + String.fromCharCode(code)
+        + textInput.value.slice(end);
+      textInput.setSelectionRange(start + 1, start + 1);
+      syncTypedBv2Text();
+    }
+  }
+  textInputAltValue = -2;
+  e.preventDefault();
   e.stopPropagation();
 });
 textInput.addEventListener('beforeinput', (e) => {

@@ -52,6 +52,17 @@ function mapExtendedChar(code) {
   return table[code] ?? code;
 }
 
+/** Convert user-facing caret markup and Unicode Alt characters to BV2 codes. */
+export function normalizeBv2Text(text) {
+  const expanded = expandCaretColors(text);
+  let out = '';
+  for (const ch of expanded) {
+    const code = mapExtendedChar(ch.charCodeAt(0));
+    out += String.fromCharCode(code);
+  }
+  return out;
+}
+
 function charWidth(font, code, size) {
   if (code >= 1 && code <= 9) return 0;
   return (font.kerning[code & 0xff] ?? 0) * size;
