@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.15](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.14...v0.5.15) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ctf:** keep carried flags camera-facing ([67909db](https://github.com/BaboViolent/baboviolent2-jsclient/commit/67909dba96d18a8bd854fcff13ba3721497a1fc3))
+
 ## [0.5.14](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.13...v0.5.14) (2026-08-20)
 
 
