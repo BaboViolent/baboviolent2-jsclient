@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.5](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.4...v0.5.5) (2026-08-20)
+
+
+### Bug Fixes
+
+* **client:** announce team changes and flag drops ([ef4bf4a](https://github.com/BaboViolent/baboviolent2-jsclient/commit/ef4bf4abee98324875227ccc97b9cb01d431e841))
+
 ## [0.5.4](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.3...v0.5.4) (2026-08-20)
 
 
