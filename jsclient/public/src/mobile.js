@@ -10,37 +10,56 @@ export function browserIsMobileSpectator(win = window) {
   });
 }
 
+export function touchGestureDelta(previous, current) {
+  if (previous.length !== current.length || current.length === 0) return { panX: 0, panY: 0, zoom: 0 };
+  const center = (points) => points.reduce((sum, point) => ({
+    x: sum.x + point.x / points.length,
+    y: sum.y + point.y / points.length,
+  }), { x: 0, y: 0 });
+  const before = center(previous);
+  const after = center(current);
+  let zoom = 0;
+  if (current.length >= 2) {
+    const oldDistance = Math.hypot(previous[1].x - previous[0].x, previous[1].y - previous[0].y);
+    const newDistance = Math.hypot(current[1].x - current[0].x, current[1].y - current[0].y);
+    zoom = (oldDistance - newDistance) / 40;
+  }
+  return { panX: after.x - before.x, panY: after.y - before.y, zoom };
+}
+
 export class MobileSpectatorControls {
   constructor(root, input, { onChat } = {}) {
     this.root = root;
     this.input = input;
-    root.querySelectorAll('[data-mobile-move]').forEach((button) => {
-      const direction = button.dataset.mobileMove;
-      const finish = (event) => {
-        input.setTouchMove(direction, false);
-        button.classList.remove('active');
-        if (event.pointerId != null && button.hasPointerCapture?.(event.pointerId)) {
-          button.releasePointerCapture(event.pointerId);
-        }
-      };
-      button.addEventListener('pointerdown', (event) => {
-        event.preventDefault();
-        button.setPointerCapture?.(event.pointerId);
-        input.setTouchMove(direction, true);
-        button.classList.add('active');
-      });
-      button.addEventListener('pointerup', finish);
-      button.addEventListener('pointercancel', finish);
-      button.addEventListener('lostpointercapture', finish);
+    this.visible = false;
+    this.pointers = new Map();
+    const canvas = input.canvas;
+    canvas.addEventListener('pointerdown', (event) => {
+      if (!this.visible || event.pointerType === 'mouse') return;
+      event.preventDefault();
+      canvas.setPointerCapture?.(event.pointerId);
+      this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     });
-    root.querySelectorAll('[data-mobile-zoom]').forEach((button) => {
-      button.addEventListener('pointerdown', (event) => {
-        event.preventDefault();
-        input.addTouchZoom(Number(button.dataset.mobileZoom));
-      });
+    canvas.addEventListener('pointermove', (event) => {
+      if (!this.visible || !this.pointers.has(event.pointerId)) return;
+      event.preventDefault();
+      const previous = [...this.pointers.values()];
+      this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const current = [...this.pointers.values()];
+      const gesture = touchGestureDelta(previous, current);
+      if (current.length === 1) input.addTouchPan(gesture.panX, gesture.panY);
+      if (current.length >= 2 && gesture.zoom !== 0) input.addTouchZoom(gesture.zoom);
     });
+    const finish = (event) => this.pointers.delete(event.pointerId);
+    canvas.addEventListener('pointerup', finish);
+    canvas.addEventListener('pointercancel', finish);
+    canvas.addEventListener('lostpointercapture', finish);
     root.querySelector('#mobileChat')?.addEventListener('click', () => onChat?.());
   }
 
-  setVisible(visible) { this.root.hidden = !visible; }
+  setVisible(visible) {
+    this.visible = visible;
+    this.root.hidden = !visible;
+    if (!visible) this.pointers.clear();
+  }
 }

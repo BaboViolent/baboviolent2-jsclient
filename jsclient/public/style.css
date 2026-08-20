@@ -604,7 +604,6 @@ html, body {
   user-select: none;
   touch-action: none;
 }
-.mobile-dpad,
 .mobile-actions {
   position: absolute;
   bottom: max(18px, env(safe-area-inset-bottom));
@@ -612,20 +611,11 @@ html, body {
   gap: 8px;
   pointer-events: auto;
 }
-.mobile-dpad {
-  left: max(18px, env(safe-area-inset-left));
-  grid-template-columns: repeat(3, 58px);
-  grid-template-rows: repeat(2, 58px);
-}
-.mobile-dpad [data-mobile-move="up"] { grid-column: 2; }
-.mobile-dpad [data-mobile-move="left"] { grid-column: 1; grid-row: 2; }
-.mobile-dpad [data-mobile-move="down"] { grid-column: 2; grid-row: 2; }
-.mobile-dpad [data-mobile-move="right"] { grid-column: 3; grid-row: 2; }
 .mobile-actions {
   right: max(18px, env(safe-area-inset-right));
-  grid-template-columns: repeat(2, 58px);
+  grid-template-columns: auto;
 }
-.mobile-actions #mobileChat { grid-column: 1 / 3; width: auto; }
+.mobile-actions #mobileChat { width: auto; padding: 0 18px; }
 .mobile-spectator-controls button {
   width: 58px;
   height: 58px;
@@ -648,6 +638,5 @@ body.mobile-spectator .ig-teams { width: min(90vw, 360px); }
 
 @media (max-width: 700px) {
   #overlay { display: none; }
-  .mobile-dpad { grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); }
   .mobile-spectator-controls button { width: 50px; height: 50px; font-size: 20px; }
 }

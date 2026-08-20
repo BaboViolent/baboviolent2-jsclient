@@ -8,6 +8,7 @@ export class Input {
     this.mousePressed = new Set();
     this.wheelDelta = 0;
     this.touchMoves = new Set();
+    this.touchPan = { x: 0, y: 0 };
     this.tabDown = false;
     this.bindings = bindings;
 
@@ -62,6 +63,16 @@ export class Input {
     else this.touchMoves.delete(direction);
   }
   addTouchZoom(direction) { this.wheelDelta += direction; }
+  addTouchPan(x, y) {
+    this.touchPan.x += x;
+    this.touchPan.y += y;
+  }
+  consumeTouchPan() {
+    const pan = { ...this.touchPan };
+    this.touchPan.x = 0;
+    this.touchPan.y = 0;
+    return pan;
+  }
   bound(action, fallback) { return this.bindings[action] ?? fallback; }
 
   get moveUp() { return this.touchMoves.has('up') || this.keys.has(this.bound('moveUp', 'KeyW')) || this.keys.has('ArrowUp'); }

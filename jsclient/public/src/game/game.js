@@ -534,6 +534,13 @@ export class Game {
       if (this.input.moveUp) this.specLookAt[1] += SPECTATOR_SPEED * delay;
       if (this.input.moveDown) this.specLookAt[1] -= SPECTATOR_SPEED * delay;
 
+      const pan = this.input.consumeTouchPan();
+      const canvas = this.renderer.gl.canvas;
+      const halfHeight = Math.tan((60 * Math.PI) / 360) * this.renderer.cameraHeight;
+      const worldPerPixel = (halfHeight * 2) / Math.max(1, canvas.clientHeight);
+      this.specLookAt[0] -= pan.x * worldPerPixel;
+      this.specLookAt[1] += pan.y * worldPerPixel;
+
       // Map.cpp:1242 — wheel changes height, clamped to [-8, longestSide/2].
       const wheel = this.input.consumeWheel();
       if (wheel !== 0 && this.map) {

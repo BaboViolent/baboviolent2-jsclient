@@ -518,7 +518,8 @@ export class Hud {
   renderChat(ui, scale) {
     const gl = this.gl;
     const textSize = 22 * scale;
-    const baseY = gl.canvas.height - 120 * scale;
+    const mobileOffset = ui.game.mobileSpectator ? 190 : 120;
+    const baseY = gl.canvas.height - mobileOffset * scale;
     for (let i = 0; i < ui.chatMessages.length; i++) {
       const msg = ui.chatMessages[i];
       const alpha = msg.duration > 1 ? 0.85 : msg.duration * 0.85;
@@ -528,7 +529,7 @@ export class Hud {
       this.text(textSize, 12 * scale, y, msg.message, [1, 1, 1, alpha]);
     }
     if (ui.chatActive) {
-      const y = gl.canvas.height - 48 * scale;
+      const y = gl.canvas.height - (ui.game.mobileSpectator ? 100 : 48) * scale;
       this.rect(8 * scale, y, 500 * scale, 32 * scale, [0, 0, 0, 0.55]);
       this.text(22 * scale, 12 * scale, y + 4 * scale, ui.inputPrompt + ui.chatBuffer + '_', TEXT_COLORS[9]);
     }

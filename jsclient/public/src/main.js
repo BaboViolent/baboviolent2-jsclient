@@ -28,7 +28,6 @@ const canvas = document.getElementById('view');
 const hud = document.getElementById('hud');
 const ingameMenu = document.getElementById('ingameMenu');
 const overlay = document.getElementById('overlay');
-const help = document.getElementById('help');
 const textInput = document.getElementById('textInput');
 const igGameTitle = document.getElementById('igGameTitle');
 const igGameSubtitle = document.getElementById('igGameSubtitle');
@@ -40,9 +39,6 @@ const btnDisconnect = document.getElementById('btnDisconnect');
 const btnMainMenu = document.getElementById('btnMainMenu');
 const worldEditorRoot = document.getElementById('worldEditor');
 const mobileControlsRoot = document.getElementById('mobileSpectatorControls');
-
-const HELP_DEFAULT = 'WASD move · LMB shoot · RMB grenade · MMB molotov · Space melee · F pickup · Tab scores · T chat · ` console · Esc menu';
-const HELP_EXPLORE = 'WASD move · LMB shoot · RMB grenade · MMB molotov · Space melee · M / [ ] map · Esc menu';
 
 const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
 if (!gl) {
@@ -57,6 +53,7 @@ const input = new Input(canvas, settings.data.bindings);
 const mobileSpectator = browserIsMobileSpectator();
 renderer.renderScale = settings.data.renderScale ?? 1;
 const game = new Game(renderer, input);
+game.mobileSpectator = mobileSpectator;
 window.bv2 = { game, renderer, assets, settings };
 document.body.classList.toggle('mobile-spectator', mobileSpectator);
 const mobileControls = new MobileSpectatorControls(mobileControlsRoot, input, {
@@ -658,7 +655,7 @@ function currentMapIndex() {
 }
 
 function updateOverlayHelp() {
-  help.textContent = game.exploreMode ? HELP_EXPLORE : HELP_DEFAULT;
+  // The persistent desktop control legend was intentionally removed.
 }
 
 function syncTextInput() {
