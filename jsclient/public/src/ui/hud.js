@@ -54,6 +54,19 @@ export function compareScoreboardPlayers(a, b) {
     || (a.id ?? a.playerID ?? 0) - (b.id ?? b.playerID ?? 0);
 }
 
+export function vectorStatusVisibility(game) {
+  const wait = game.thisPlayer?.timeToSpawn ?? 0;
+  const statusAllowed = !game.ui.menuOpen && !game.ui.showScoreboard && !game.editorMode;
+  return {
+    spawn: statusAllowed
+      && !game.isSpectating
+      && game.thisPlayer?.status === PLAYER_STATUS_DEAD
+      && game.thisPlayer.life <= 0
+      && wait > 0,
+    spectator: statusAllowed && game.isSpectating,
+  };
+}
+
 const SCORE_ROW_H = 22;
 const SCORE_FONT = 16;
 
@@ -290,18 +303,11 @@ export class Hud {
     if (!root || !spawn || !spectator) return;
 
     const wait = game.thisPlayer?.timeToSpawn ?? 0;
-    const showSpawn = !game.ui.menuOpen
-      && !game.editorMode
-      && !game.isSpectating
-      && game.thisPlayer?.status === PLAYER_STATUS_DEAD
-      && game.thisPlayer.life <= 0
-      && wait > 0;
-    const showSpectator = !game.ui.menuOpen && !game.editorMode && game.isSpectating;
+    const { spawn: showSpawn, spectator: showSpectator } = vectorStatusVisibility(game);
     spawn.hidden = !showSpawn;
     spectator.hidden = !showSpectator;
     root.hidden = !showSpawn && !showSpectator;
     if (showSpawn) spawn.textContent = `Spawn in ${formatCountdown(wait)}`;
-    if (showSpectator) spectator.textContent = 'SPECTATOR — move keys to fly, wheel to zoom';
   }
 
   renderMatchResult(game) {

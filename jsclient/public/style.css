@@ -23,8 +23,9 @@ html, body {
   z-index: 2;
   pointer-events: none;
   color: #fff;
-  font-family: "Arial Black", "Segoe UI", sans-serif;
-  font-weight: 800;
+  font-family: Tahoma, Verdana, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
   text-align: center;
   text-shadow: 0 2px 0 #000, 2px 0 0 #000, 0 -2px 0 #000, -2px 0 0 #000;
   -webkit-font-smoothing: antialiased;
@@ -48,6 +49,17 @@ html, body {
   transform: translateY(-50%);
   font-size: clamp(18px, 2.4vw, 28px);
   line-height: 1;
+}
+
+.spectator-status-text strong {
+  font: inherit;
+}
+
+.spectator-status-text span {
+  margin-left: 0.6em;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 /* Boot screens — IntroScreen.cpp */
