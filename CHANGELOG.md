@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.6](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.5...v0.5.6) (2026-08-20)
+
+
+### Bug Fixes
+
+* **client:** enforce authoritative carrier death ([54ac541](https://github.com/BaboViolent/baboviolent2-jsclient/commit/54ac541a9915f92c7a8f19ceee483aa666d38628))
+
 ## [0.5.5](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.4...v0.5.5) (2026-08-20)
 
 
