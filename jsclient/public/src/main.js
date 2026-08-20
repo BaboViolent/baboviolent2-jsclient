@@ -511,6 +511,7 @@ function handleNetPacket(typeId, payload) {
       const reInit = payload[1] !== 0;
       game.roundState = state;
       if (reInit) {
+        game.resetRoundTransientState();
         game.blueScore = 0;
         game.redScore = 0;
         game.ctf.blueWin = 0;

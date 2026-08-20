@@ -27,8 +27,19 @@ test('intermission freezes the clock and deathmatch HUD uses the classic score l
     readFile(new URL('../public/src/ui/hud.js', import.meta.url), 'utf8'),
   ]);
   assert.match(game, /this\.roundState === GAME_PLAYING[\s\S]*?this\.gameTimeLeft = Math\.max/);
+  assert.match(game, /if \(this\.roundState !== GAME_PLAYING\)[\s\S]*?player\.currentCF\.vel = \[0, 0, 0\][\s\S]*?return;/);
   assert.match(hud, /limit = 50;/);
   assert.doesNotMatch(hud, /limit = 999;/);
+});
+
+test('new-round reinitialization clears stale weapon and throwable state', async () => {
+  const [game, main] = await Promise.all([
+    readFile(new URL('../public/src/game/game.js', import.meta.url), 'utf8'),
+    readFile(new URL('../public/src/main.js', import.meta.url), 'utf8'),
+  ]);
+  assert.match(main, /if \(reInit\) \{[\s\S]*?game\.resetRoundTransientState\(\)/);
+  assert.match(game, /resetRoundTransientState\(\)[\s\S]*?weapon\.currentFireDelay = 0/);
+  assert.match(game, /resetRoundTransientState\(\)[\s\S]*?player\.grenadeDelay = 0/);
 });
 
 test('server timer synchronization updates both Champion clocks', async () => {

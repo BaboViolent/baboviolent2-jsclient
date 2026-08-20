@@ -379,6 +379,18 @@ export class Game {
       }
     }
 
+    // Game.cpp:390 — player movement and weapon simulation stop completely
+    // while a win/draw state is displayed. Keep rendering effects, but pin
+    // the local body until the authoritative GAME_PLAYING reinitialization.
+    if (this.roundState !== GAME_PLAYING) {
+      player.currentCF.vel = [0, 0, 0];
+      player.lastCF.position = [...player.currentCF.position];
+      player.lastCF.vel = [0, 0, 0];
+      this.audio.setListener(player.currentCF.position);
+      this.updateWorld(delay);
+      return;
+    }
+
     player.update(delay, this.map, this.input);
 
     if (player.status === PLAYER_STATUS_ALIVE) {
@@ -481,6 +493,23 @@ export class Game {
     }
 
     this.updateWorld(delay);
+  }
+
+  resetRoundTransientState() {
+    for (const player of this.players) {
+      player.currentCF.vel = [0, 0, 0];
+      player.lastCF.vel = [0, 0, 0];
+      player.grenadeDelay = 0;
+      player.meleeDelay = 0;
+      for (const weapon of [player.weapon, player.meleeWeapon]) {
+        if (!weapon) continue;
+        weapon.currentFireDelay = 0;
+        weapon.charge = 0;
+        weapon.overHeated = false;
+        weapon.shotInc = 0;
+        weapon.fullReload = false;
+      }
+    }
   }
 
   /** World simulation that keeps running while the local player is dead or spectating. */
