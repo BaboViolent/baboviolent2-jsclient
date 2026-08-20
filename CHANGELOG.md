@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.11](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.10...v0.5.11) (2026-08-20)
+
+
+### Bug Fixes
+
+* **feedback:** use native hit sound and simplify HUD ([4c13e64](https://github.com/BaboViolent/baboviolent2-jsclient/commit/4c13e64403eb7815a178f7e815d851bda7ab3d40))
+
 ## [0.5.10](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.9...v0.5.10) (2026-08-20)
 
 
