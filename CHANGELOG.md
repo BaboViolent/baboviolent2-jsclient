@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.8](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.7...v0.5.8) (2026-08-20)
+
+
+### Bug Fixes
+
+* **client:** synchronize authoritative online state ([1377aa5](https://github.com/BaboViolent/baboviolent2-jsclient/commit/1377aa5b1343efe0c284fdf587958211d37df388))
+
 ## [0.5.7](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.6...v0.5.7) (2026-08-20)
 
 
