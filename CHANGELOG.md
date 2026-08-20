@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.3...v0.5.4) (2026-08-20)
+
+
+### Bug Fixes
+
+* **client:** synchronize online session UI ([d23be98](https://github.com/BaboViolent/baboviolent2-jsclient/commit/d23be98745f8842ad93652b84db5c14debe8571a))
+
 ## [0.5.3](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.2...v0.5.3) (2026-08-20)
 
 
