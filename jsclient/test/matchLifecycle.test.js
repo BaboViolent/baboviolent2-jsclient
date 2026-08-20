@@ -30,3 +30,11 @@ test('intermission freezes the clock and deathmatch HUD uses the classic score l
   assert.match(hud, /limit = 50;/);
   assert.doesNotMatch(hud, /limit = 999;/);
 });
+
+test('server timer synchronization updates both Champion clocks', async () => {
+  const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
+  assert.match(
+    main,
+    /case NET\.SVCL_SYNCHRONIZE_TIMER:[\s\S]*?game\.gameTimeLeft = t\.gameTimeLeft;[\s\S]*?game\.roundTimeLeft = t\.roundTimeLeft;/,
+  );
+});

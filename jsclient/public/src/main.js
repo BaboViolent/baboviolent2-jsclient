@@ -412,6 +412,7 @@ function handleNetPacket(typeId, payload) {
     case NET.SVCL_SYNCHRONIZE_TIMER: {
       const t = parseSyncTimer(payload);
       game.gameTimeLeft = t.gameTimeLeft;
+      game.roundTimeLeft = t.roundTimeLeft;
       break;
     }
     case NET.SVCL_GAME_STATE: {
