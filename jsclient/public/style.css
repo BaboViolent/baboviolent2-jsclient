@@ -156,6 +156,7 @@ html, body {
   inset: 0;
   overflow: auto;
   box-sizing: border-box;
+  will-change: transform;
 }
 
 .menu2-panel .panel-inner {

@@ -3,6 +3,7 @@ import { loadMenuBackgrounds, applyPanelBackground } from './menuAssets.js';
 import { ProfilePreview } from './profilePreview.js';
 import { attachBv2TextInput } from './colorInput.js';
 import { MapEditor } from './mapEditor.js';
+import { createMenuPanelMotion, stepMenuPanelMotion } from './menuPanelMotion.js';
 
 const TABS = [
   { id: 'profile', label: 'Profile' },
@@ -66,6 +67,8 @@ export class Menu2 {
     this.connectOverlay = document.getElementById('connectOverlay');
     this.connectStatus = document.getElementById('connectStatus');
     this._activeTab = 'profile';
+    this._panelMotion = null;
+    this._animatedPanel = null;
     this.profilePreview = null;
     this._buildDOM();
     this._wireTabs();
@@ -102,11 +105,17 @@ export class Menu2 {
 
   _wireTabs() {
     this.tabBar.querySelectorAll('[data-tab]').forEach((btn) => {
-      btn.addEventListener('click', () => this.showTab(btn.dataset.tab));
+      btn.addEventListener('pointerenter', () => {
+        if (!btn.disabled) void this.game.audio?.play2D('ControlOver.wav', 200);
+      });
+      btn.addEventListener('click', () => {
+        void this.game.audio?.play2D('Button.wav', 200);
+        this.showTab(btn.dataset.tab, { animate: true });
+      });
     });
   }
 
-  showTab(id) {
+  showTab(id, { animate = false } = {}) {
     this._activeTab = id;
     this.tabBar.querySelectorAll('.menu-tab[data-tab]').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.tab === id);
@@ -115,15 +124,43 @@ export class Menu2 {
     for (const tab of TABS) {
       if (this.panels[tab.id]) this.panels[tab.id].hidden = tab.id !== id;
     }
+    if (animate && this.panels[id]) this._startPanelAnimation(this.panels[id]);
     if (this.bgUrls) applyPanelBackground(this.panelFrame, this.bgUrls, id);
     if (id === 'browser') void this.refreshServers();
     if (id === 'profile') void this.updateProfilePreview();
   }
 
   tickPreview(delay) {
-    if (this.root.hidden || this._activeTab !== 'profile' || !this.profilePreview) return;
+    if (this.root.hidden) return;
+    this._tickPanelAnimation(delay);
+    if (this._activeTab !== 'profile' || !this.profilePreview) return;
     this.profilePreview.tick(delay, this.game.input);
     this.profilePreview.render();
+  }
+
+  _startPanelAnimation(panel) {
+    if (this._animatedPanel && this._animatedPanel !== panel) {
+      this._animatedPanel.style.transform = '';
+    }
+    this._animatedPanel = panel;
+    this._panelMotion = createMenuPanelMotion();
+    this._applyPanelAnimation();
+  }
+
+  _applyPanelAnimation() {
+    if (!this._animatedPanel || !this._panelMotion) return;
+    const scale = Math.max(1, this.root.clientHeight) / 600;
+    this._animatedPanel.style.transform = `translateY(${this._panelMotion.y * scale}px)`;
+  }
+
+  _tickPanelAnimation(delay) {
+    if (!this._panelMotion?.active) return;
+    const impacts = stepMenuPanelMotion(this._panelMotion, delay);
+    this._applyPanelAnimation();
+    if (impacts > 0) void this.game.audio?.play2D('impact.wav', 150);
+    if (!this._panelMotion.active && this._animatedPanel) {
+      this._animatedPanel.style.transform = '';
+    }
   }
 
   async runIntro() {
