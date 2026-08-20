@@ -132,7 +132,14 @@ export class Hud {
   async load() {
     const image = await this.assets.loadImage('main/fonts/babo.tga');
     this.font = new BitmapFont(image);
-    this.fontTexture = await this.assets.loadTexture('main/fonts/babo.tga', { repeat: false, mipmap: false });
+    // The native 64px bitmap glyphs should retain their authored edges when
+    // scaled for device pixels. Linear magnification makes large HUD labels
+    // such as "Spawn in" look soft.
+    this.fontTexture = await this.assets.loadTexture('main/fonts/babo.tga', {
+      repeat: false,
+      mipmap: false,
+      nearest: true,
+    });
     this.sniperScope = buildSniperScopeTexture(this.gl);
     const iconFiles = {
       cartridge: 'CartridgeIcon', grenade: 'GrenadeIcon', molotov: 'molotovIcon',
