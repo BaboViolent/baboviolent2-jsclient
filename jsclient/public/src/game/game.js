@@ -1150,16 +1150,9 @@ export class Game {
     if (explosion.fromNetwork) {
       const owner = this.resolvePlayer(explosion.ownerID);
       if (owner) owner.rocketInAir = false;
-      for (const proj of this.projectiles) {
-        if (proj.dead) continue;
-        if (explosion.ownerID >= 0 && proj.ownerID !== explosion.ownerID) continue;
-        if (proj.type !== PROJECTILE_ROCKET && proj.type !== PROJECTILE_GRENADE) continue;
-        const d = Math.hypot(
-          proj.currentCF.position[0] - explosion.position[0],
-          proj.currentCF.position[1] - explosion.position[1],
-        );
-        if (d < Math.max(1.5, explosion.radius ?? 1.5)) proj.dead = true;
-      }
+      // The explosion packet does not identify its source projectile. The
+      // server sends NET_SVCL_DELETE_PROJECTILE with the exact unique ID, so
+      // do not guess by owner/proximity: a second live grenade can be nearby.
     }
 
     EFFECTS.explosion(this.particles, explosion.position);
