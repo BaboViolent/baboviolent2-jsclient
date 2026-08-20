@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.3.0...v0.3.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **scoreboard:** remove misleading offline ping ([1cb256a](https://github.com/BaboViolent/baboviolent2-jsclient/commit/1cb256a296704f1ae00779cfc0c76db086e64672))
+
 ## [0.3.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.2.1...v0.3.0) (2026-08-20)
 
 
