@@ -10,6 +10,7 @@ export class Input {
     this.touchMoves = new Set();
     this.touchPan = { x: 0, y: 0 };
     this.tabDown = false;
+    this.mobileScoreboard = false;
     this.bindings = bindings;
 
     window.addEventListener('keydown', (e) => {
@@ -58,6 +59,7 @@ export class Input {
   }
 
   setBindings(bindings) { this.bindings = bindings; }
+  setMobileScoreboard(visible) { this.mobileScoreboard = visible; }
   setTouchMove(direction, active) {
     if (active) this.touchMoves.add(direction);
     else this.touchMoves.delete(direction);
@@ -127,6 +129,6 @@ export class Input {
   }
 
   get tabHeld() {
-    return this.keys.has('Tab');
+    return this.keys.has('Tab') || this.mobileScoreboard;
   }
 }

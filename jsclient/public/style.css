@@ -615,7 +615,8 @@ html, body {
   right: max(18px, env(safe-area-inset-right));
   grid-template-columns: auto;
 }
-.mobile-actions #mobileChat { width: auto; padding: 0 18px; }
+.mobile-actions #mobileChat,
+.mobile-actions #mobileScoreboard { width: auto; padding: 0 18px; }
 .mobile-spectator-controls button {
   width: 58px;
   height: 58px;

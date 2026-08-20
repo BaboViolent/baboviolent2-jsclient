@@ -62,6 +62,7 @@ const mobileControls = new MobileSpectatorControls(mobileControlsRoot, input, {
     game.ui.openChat(false);
     syncTextInput();
   },
+  onScoreboard: (visible) => input.setMobileScoreboard(visible),
 });
 
 input.onFirstGesture(() => game.audio.resume());
@@ -675,8 +676,15 @@ textInput.addEventListener('input', () => {
 textInput.addEventListener('keydown', (e) => {
   // This focused input owns text-entry keys: stopping propagation keeps the
   // player from moving/shooting, so submit/cancel must also happen here.
-  if (game.ui.handleTextInputKey(e.code)) e.preventDefault();
+  const code = e.key === 'Enter' ? 'Enter' : e.code;
+  if (game.ui.handleTextInputKey(code)) e.preventDefault();
   e.stopPropagation();
+});
+textInput.addEventListener('beforeinput', (e) => {
+  // Android IMEs often send no usable key/code for the keyboard action button,
+  // but do expose it as an attempted line break on a single-line input.
+  if (!['insertLineBreak', 'insertParagraph'].includes(e.inputType)) return;
+  if (game.ui.handleTextInputKey('Enter')) e.preventDefault();
 });
 
 async function switchMap(name, { skipSpawn = false, preserveMatchState = false } = {}) {

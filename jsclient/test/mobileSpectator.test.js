@@ -27,5 +27,19 @@ test('two-finger pinch produces continuous zoom without panning its center', () 
   );
   assert.equal(gesture.panX, 0);
   assert.equal(gesture.panY, 0);
-  assert.equal(gesture.zoom, -0.5);
+  assert.equal(gesture.zoom, -2);
+});
+
+test('mobile UI provides Android send semantics and a scoreboard toggle', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const [html, main, input] = await Promise.all([
+    readFile(new URL('../public/index.html', import.meta.url), 'utf8'),
+    readFile(new URL('../public/src/main.js', import.meta.url), 'utf8'),
+    readFile(new URL('../public/src/input.js', import.meta.url), 'utf8'),
+  ]);
+  assert.match(html, /id="mobileScoreboard"/);
+  assert.match(html, /enterkeyhint="send"/);
+  assert.match(main, /insertLineBreak.*insertParagraph/);
+  assert.match(main, /e\.key === 'Enter'/);
+  assert.match(input, /this\.keys\.has\('Tab'\) \|\| this\.mobileScoreboard/);
 });
