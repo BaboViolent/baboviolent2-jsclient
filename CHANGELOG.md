@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.9](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.8...v0.5.9) (2026-08-20)
+
+
+### Bug Fixes
+
+* **client:** reconcile flags and encode names safely ([db097fb](https://github.com/BaboViolent/baboviolent2-jsclient/commit/db097fb3a1708affa6f52e77ff2161414e73d51f))
+
 ## [0.5.8](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.7...v0.5.8) (2026-08-20)
 
 
