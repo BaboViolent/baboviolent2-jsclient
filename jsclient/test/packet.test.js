@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parseExplosion, parseProjectileCoordFrame } from '../public/src/net/packet.js';
+import {
+  decodeFrame, parseExplosion, parseProjectileCoordFrame, parseVoteRequest, voteRequest, voteResponse,
+} from '../public/src/net/packet.js';
+import { NET } from '../public/src/net/protocol.js';
 
 test('NET_SVCL_EXPLOSION decodes the exact legacy 29-byte layout', () => {
   const payload = new Uint8Array(29);
@@ -43,4 +46,15 @@ test('NET_SVCL_PROJECTILE_COORD_FRAME follows the aligned C struct layout', () =
     position: [1.25, -2.5, 0.5],
     vel: [1, -1, 0.5],
   });
+});
+
+test('vote request and response preserve the legacy wire layouts', () => {
+  const request = decodeFrame(voteRequest(7, 'set sv_gameType 2'));
+  assert.equal(request.typeId, NET.CLSV_SVCL_VOTE_REQUEST);
+  assert.equal(request.payload.length, 81);
+  assert.deepEqual(parseVoteRequest(request.payload), { command: 'set sv_gameType 2', playerID: 7 });
+
+  const response = decodeFrame(voteResponse(7, true));
+  assert.equal(response.typeId, NET.CLSV_VOTE);
+  assert.deepEqual([...response.payload], [1, 7]);
 });

@@ -109,6 +109,21 @@ export function teamRequest(playerId, teamId) {
   return encodeFrame(NET.CLSV_SVCL_TEAM_REQUEST, p);
 }
 
+export function voteRequest(playerId, command) {
+  const p = new Uint8Array(81);
+  p.set(new TextEncoder().encode(command).subarray(0, 79), 0);
+  p[80] = playerId & 0xff;
+  return encodeFrame(NET.CLSV_SVCL_VOTE_REQUEST, p);
+}
+
+export function voteResponse(playerId, yes) {
+  return encodeFrame(NET.CLSV_VOTE, new Uint8Array([yes ? 1 : 0, playerId & 0xff]));
+}
+
+export function parseVoteRequest(payload) {
+  return { command: readFixedStr(payload, 0, 80), playerID: payload[80] };
+}
+
 export function coordFrame(playerId, frameId, pos, vel, mouse, babonetId) {
   const p = new Uint8Array(28);
   const view = new DataView(p.buffer);

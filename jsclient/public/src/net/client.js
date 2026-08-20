@@ -4,6 +4,7 @@ import {
   decodeFrame, drainFrames, gameVersionAccepted, playerInfo, spawnRequest,
   teamRequest, coordFrame, pong, readFixedStr, GAME_VERSION_SV,
   playerShoot, playerProjectile, shootMelee, pickupRequest, reportExplosion, reportBurn, chatMessage,
+  voteRequest, voteResponse,
 } from './packet.js';
 import { wireDecalsFromFloats } from '../game/skin.js';
 
@@ -149,6 +150,16 @@ export class Bv2Client {
   sendChat(teamId, message) {
     if (this.playerId < 0) return;
     this.send(chatMessage(teamId, message));
+  }
+
+  requestVote(command) {
+    if (this.playerId < 0) return;
+    this.send(voteRequest(this.playerId, command));
+  }
+
+  castVote(yes) {
+    if (this.playerId < 0) return;
+    this.send(voteResponse(this.playerId, yes));
   }
 
   /** Parse NET_SVCL_SERVER_INFO for HUD. */

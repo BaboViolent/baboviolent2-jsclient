@@ -15,7 +15,7 @@ import { expandCaretColors } from './ui/colorInput.js';
 import { loadBitmapFont, renderBitmapText } from './ui/bitmapText.js';
 import { Bv2Client, NET_PLAYER_STATUS_ALIVE, NET_PLAYER_STATUS_DEAD } from './net/client.js';
 import { NET } from './net/protocol.js';
-import { parsePlayerEnumState, parsePlayerSpawn, parseCoordFrame, parsePlayerShoot, parsePlayerHit, parseExplosion, parseChat, parseSyncTimer, parsePlayerPing, parsePlayerProjectile, parseProjectileCoordFrame, readFixedStr } from './net/packet.js';
+import { parsePlayerEnumState, parsePlayerSpawn, parseCoordFrame, parsePlayerShoot, parsePlayerHit, parseExplosion, parseChat, parseSyncTimer, parsePlayerPing, parsePlayerProjectile, parseProjectileCoordFrame, parseVoteRequest, readFixedStr } from './net/packet.js';
 import { FLAG_AT_POD, FLAG_DROPPED } from './game/ctf.js';
 import { decalsForPlayer, normalizeDecals } from './game/skin.js';
 import { WEAPON_FLAME_THROWER, WEAPON_GRENADE, SV_WIN_LIMIT, SV_TIME_TO_SPAWN, PLAYER_Z } from './game/constants.js';
@@ -65,6 +65,15 @@ const mobileControls = new MobileSpectatorControls(mobileControlsRoot, input, {
 });
 
 input.onFirstGesture(() => game.audio.resume());
+
+// F1 normally opens browser help. While a vote is active, capture F1/F2 before
+// the focused text input or browser can act on them and submit the vote instead.
+window.addEventListener('keydown', (event) => {
+  if (!game.ui.vote.active || game.ui.vote.voted || !['F1', 'F2'].includes(event.code)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (!event.repeat) game.ui.castVote(event.code === 'F1');
+}, { capture: true });
 
 let menu2;
 let worldEditor;
@@ -403,6 +412,19 @@ function handleNetPacket(typeId, payload) {
       game.ui.addNetChat(msg.message, msg.teamID);
       break;
     }
+    case NET.CLSV_SVCL_VOTE_REQUEST: {
+      if (payload.length < 81) break;
+      const vote = parseVoteRequest(payload);
+      const from = game.players[vote.playerID]?.name ?? `Player ${vote.playerID}`;
+      game.ui.startVote(from, vote.command);
+      break;
+    }
+    case NET.SVCL_UPDATE_VOTE:
+      if (payload.length >= 2) game.ui.updateVote(payload[0], payload[1]);
+      break;
+    case NET.SVCL_VOTE_RESULT:
+      if (payload.length >= 1) game.ui.finishVote(payload[0] !== 0);
+      break;
     case NET.SVCL_MSG: {
       const msg = parseChat(payload.subarray(1));
       game.ui.addNetChat(msg.message, CHAT_TEAM_ALL);

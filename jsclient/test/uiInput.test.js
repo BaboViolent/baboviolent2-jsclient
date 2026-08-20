@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import { GameUI } from '../public/src/ui/ui.js';
 import { CHAT_TEAM_ALL, GAME_TYPE_CTF, GAME_TYPE_DM } from '../public/src/game/constants.js';
@@ -9,7 +10,11 @@ function onlineGame() {
   return {
     onlineMode: true,
     thisPlayer: { teamID: 1 },
-    netClient: { sendChat: (teamID, message) => sent.push({ teamID, message }) },
+    netClient: {
+      sendChat: (teamID, message) => sent.push({ teamID, message }),
+      requestVote: (command) => sent.push({ command }),
+      castVote: (yes) => sent.push({ yes }),
+    },
     sent,
   };
 }
@@ -26,6 +31,32 @@ test('focused chat input submits on Enter and releases gameplay', () => {
   assert.deepEqual(game.sent, [{ teamID: CHAT_TEAM_ALL, message: 'hello world' }]);
   assert.equal(ui.chatActive, false);
   assert.equal(ui.chatBuffer, '');
+});
+
+test('vote console command and F1/F2 action use the network vote flow', () => {
+  const game = onlineGame();
+  const ui = new GameUI(game);
+  ui.runCommand('vote changemap CTF-Alert');
+  assert.deepEqual(game.sent, [{ command: 'changemap CTF-Alert' }]);
+
+  ui.startVote('Starter', 'changemap CTF-Alert');
+  assert.equal(ui.castVote(true), true);
+  assert.deepEqual(game.sent.at(-1), { yes: true });
+  assert.equal(ui.castVote(false), false, 'a player may vote only once');
+  ui.updateVote(1, 0);
+  assert.deepEqual({ yes: ui.vote.yes, no: ui.vote.no }, { yes: 1, no: 0 });
+  ui.finishVote(true);
+  assert.equal(ui.vote.active, false);
+  assert.match(ui.eventMessages.at(-1).message, /Vote passed/);
+});
+
+test('active vote captures F1 and F2 before browser defaults', async () => {
+  const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /\['F1', 'F2'\]\.includes\(event\.code\)/);
+  assert.match(main, /event\.preventDefault\(\)/);
+  assert.match(main, /event\.stopImmediatePropagation\(\)/);
+  assert.match(main, /castVote\(event\.code === 'F1'\)/);
+  assert.match(main, /\{ capture: true \}/);
 });
 
 test('focused chat and console input can be cancelled without refreshing', () => {

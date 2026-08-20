@@ -547,6 +547,23 @@ export class Hud {
     }
   }
 
+  renderVote(ui, scale) {
+    if (!ui.vote.active) return;
+    const gl = this.gl;
+    const width = Math.min(540 * scale, gl.canvas.width - 32 * scale);
+    const height = 138 * scale;
+    const x = (gl.canvas.width - width) / 2;
+    const y = 86 * scale;
+    this.rect(x, y, width, height, [0, 0, 0, 0.82]);
+    this.rect(x, y, width, 3 * scale, [1, 0.82, 0.2, 1]);
+    this.text(18 * scale, x + 16 * scale, y + 14 * scale, `${ui.vote.from} started a vote`, TEXT_COLORS[9]);
+    this.text(21 * scale, x + 16 * scale, y + 42 * scale, ui.vote.command, TEXT_COLORS[8]);
+    const prompt = ui.vote.voted ? 'Vote recorded' : 'F1 YES     F2 NO';
+    this.text(19 * scale, x + 16 * scale, y + 78 * scale, prompt, TEXT_COLORS[9]);
+    this.text(17 * scale, x + 16 * scale, y + 107 * scale,
+      `Yes: ${ui.vote.yes}   No: ${ui.vote.no}   ${Math.ceil(ui.vote.remaining)}s`, TEXT_COLORS[7]);
+  }
+
   renderConsole(ui, scale) {
     if (!ui.consoleActive) return;
     const gl = this.gl;
@@ -803,6 +820,7 @@ export class Hud {
     }
 
     this.renderEvents(ui, scale);
+    this.renderVote(ui, scale);
     this.renderChat(ui, scale);
     this.renderScoreboard(game, scale);
     if (ui.showScoreboard) {

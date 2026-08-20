@@ -31,6 +31,7 @@ export class GameUI {
     this.showScoreboard = false;
     this.menuOpen = true;
     this.playing = false;
+    this.vote = { active: false, from: '', command: '', yes: 0, no: 0, voted: false, remaining: 0 };
   }
 
   log(text) {
@@ -67,6 +68,39 @@ export class GameUI {
         if (list[i].duration <= 0) list.splice(i, 1);
       }
     }
+    if (this.vote.active) this.vote.remaining = Math.max(0, this.vote.remaining - delay);
+  }
+
+  startVote(from, command) {
+    this.vote = {
+      active: true,
+      from,
+      command,
+      yes: 0,
+      no: 0,
+      voted: this.game.thisPlayer?.teamID === PLAYER_TEAM_SPECTATOR,
+      remaining: 30,
+    };
+  }
+
+  updateVote(yes, no) {
+    if (!this.vote.active) return;
+    this.vote.yes = yes;
+    this.vote.no = no;
+  }
+
+  finishVote(passed) {
+    if (!this.vote.active) return;
+    this.addEvent(`\x09Vote ${passed ? 'passed' : 'failed'}`);
+    this.log(`\x09Vote ${passed ? 'passed' : 'failed'}`);
+    this.vote.active = false;
+  }
+
+  castVote(yes) {
+    if (!this.vote.active || this.vote.voted || !this.game.netClient) return false;
+    this.game.netClient.castVote(yes);
+    this.vote.voted = true;
+    return true;
   }
 
   toggleConsole() {
@@ -150,7 +184,7 @@ export class GameUI {
 
     switch (cmd) {
       case 'help':
-        this.log('\x03Commands: help, clear, map, say, sayteam, connect, disconnect');
+        this.log('\x03Commands: help, clear, map, vote, say, sayteam, connect, disconnect');
         break;
       case 'clear':
         this.consoleMessages.length = 0;
@@ -159,6 +193,13 @@ export class GameUI {
         if (parts[1] && game.onMapRequest) void game.onMapRequest(parts[1]);
         else this.log('\x04Usage: map <name>');
         break;
+      case 'vote': {
+        const command = parts.slice(1).join(' ');
+        if (!command) this.log('\x04Usage: vote changemap <map> | vote set sv_gameType <0-3>');
+        else if (!game.onlineMode || !game.netClient) this.log('\x04Voting requires an online server');
+        else game.netClient.requestVote(command);
+        break;
+      }
       case 'say':
         if (parts.length > 1) {
           const msg = parts.slice(1).join(' ');
