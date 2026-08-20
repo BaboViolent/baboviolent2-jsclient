@@ -290,6 +290,7 @@ function applyChangeFlagState(payload) {
   const flagId = payload[0];
   const newState = payload[1] >= 128 ? payload[1] - 256 : payload[1];
   const playerId = payload[2];
+  const action = payload.length >= 4 ? payload[3] : 0;
   if (flagId > 1) return;
   const ctf = game.ctf;
   const oldState = ctf.flagState[flagId];
@@ -298,16 +299,16 @@ function applyChangeFlagState(payload) {
 
   // Actor team distinguishes a return from a capture even if the client did
   // not observe the preceding dropped-state packet.
-  if (oldState !== newState) {
-    if (newState === FLAG_AT_POD && p.teamID === flagTeam) {
+  if (action !== 0 || oldState !== newState) {
+    if (action === 2 || (action === 0 && newState === FLAG_AT_POD && p.teamID === flagTeam)) {
       p.returns = (p.returns ?? 0) + 1;
       game.ui.addEvent('\x03> ' + p.name + ' returned the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
       if (p.teamID === game.thisPlayer.teamID) void game.audio.play2D('return.wav', 255);
-    } else if ((oldState === FLAG_DROPPED || oldState === FLAG_AT_POD) && newState >= 0) {
+    } else if (action === 1 || (action === 0 && (oldState === FLAG_DROPPED || oldState === FLAG_AT_POD) && newState >= 0)) {
       p.flagAttempts = (p.flagAttempts ?? 0) + 1;
       game.ui.addEvent('\x03> ' + p.name + ' took the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
       void game.audio.play2D(p.teamID === game.thisPlayer.teamID ? 'ftook.wav' : 'etook.wav', 255);
-    } else if (newState === FLAG_AT_POD) {
+    } else if (action === 3 || (action === 0 && newState === FLAG_AT_POD)) {
       if (flagId === 0) {
         game.ctf.redWin += 1;
         game.redScore = game.ctf.redWin;

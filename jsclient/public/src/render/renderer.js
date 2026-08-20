@@ -582,12 +582,12 @@ export class Renderer {
       if (carrier >= 0) {
         const player = game.players.find((pl) => pl.playerID === carrier);
         if (player) {
-          angle = (player.currentCF.angle - 90) * (Math.PI / 180);
-          // Do not bury a carried flag inside the babo model. Mount it just
-          // behind and above the carrier so pickup state is immediately clear.
-          p[0] -= Math.cos(angle) * 0.38;
-          p[1] -= Math.sin(angle) * 0.38;
-          p[2] = (player.currentCF.position[2] ?? 0.25) + 0.18;
+          // Native renders carried flags as camera-facing quads. Rotating the
+          // thin 3D flag with aim made it turn edge-on and appear to vanish.
+          // Keep it facing the camera and visibly above the carrier instead.
+          p[0] = player.currentCF.position[0];
+          p[1] = player.currentCF.position[1];
+          p[2] = (player.currentCF.position[2] ?? 0.25) + 0.5;
         }
       }
       const c = Math.cos(angle) * scale;
