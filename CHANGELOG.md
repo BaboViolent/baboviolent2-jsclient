@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.21](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.20...v0.5.21) (2026-08-20)
+
+
+### Bug Fixes
+
+* **rounds:** freeze intermission and reset weapon state ([9d87eae](https://github.com/BaboViolent/baboviolent2-jsclient/commit/9d87eae51bcee3d09f47ffd1ae84b7bcdf6b5984))
+
 ## [0.5.20](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.19...v0.5.20) (2026-08-20)
 
 
