@@ -94,6 +94,8 @@ let mapLoadInFlight = null;
 let deferredMapPackets = [];
 /** Team we asked for but the server has not echoed yet; enum packets must not undo it. */
 let pendingTeamId = null;
+/** Last server-confirmed team, retained while the local player is updated optimistically. */
+let pendingPreviousTeamId = null;
 /** Human-readable identity of the active online server. */
 let connectedServerLabel = '';
 /** @type {{ font: import('./ui/font.js').BitmapFont, atlas: HTMLCanvasElement } | null} */
@@ -321,6 +323,11 @@ function applyDropFlag(payload) {
   if (payload.length < 13) return;
   const flagId = payload[0];
   if (flagId > 1) return;
+  const carrierId = game.ctf.flagState[flagId];
+  if (carrierId >= 0) {
+    const carrier = getOrCreatePlayer(carrierId);
+    game.ui.addEvent('\x07' + carrier.name + ' \x08dropped the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
+  }
   game.ctf.flagState[flagId] = FLAG_DROPPED;
   game.ctf.flagPos[flagId] = [
     readPayloadF32(payload, 1),
@@ -532,9 +539,21 @@ function handleNetPacket(typeId, payload) {
       const pid = payload[0];
       const teamId = payload[1] >= 128 ? payload[1] - 256 : payload[1];
       const p = getOrCreatePlayer(pid);
+      const previousTeamId = p === game.thisPlayer && pendingTeamId !== null
+        ? pendingPreviousTeamId
+        : p.teamID;
       p.teamID = teamId;
+      if (previousTeamId !== null && previousTeamId !== teamId) {
+        const teamName = teamId === PLAYER_TEAM_BLUE
+          ? '\x01Blue team'
+          : teamId === PLAYER_TEAM_RED
+            ? '\x04Red team'
+            : '\x09spectators';
+        game.ui.addEvent('\x09' + p.name + ' \x08joined the ' + teamName);
+      }
       if (p === game.thisPlayer) {
         pendingTeamId = null;
+        pendingPreviousTeamId = null;
         if (teamId === PLAYER_TEAM_SPECTATOR) {
           game.enterSpectator();
           onlineAwaitingSpawn = false;
@@ -567,6 +586,7 @@ function disconnectOnline() {
   game.onlineMode = false;
   onlineAwaitingSpawn = false;
   pendingTeamId = null;
+  pendingPreviousTeamId = null;
   connectedServerLabel = '';
 }
 
@@ -583,6 +603,7 @@ function joinTeamOnline(teamId) {
   const p = game.thisPlayer;
   const wasSpectating = game.isSpectating;
   const changedTeam = p.teamID !== teamId;
+  pendingPreviousTeamId = p.teamID;
   p.teamID = teamId;
   pendingTeamId = teamId;
   netClient?.requestTeam(teamId);

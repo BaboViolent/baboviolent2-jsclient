@@ -15,6 +15,12 @@ test('online team changes always enter authoritative respawn state', async () =>
   assert.match(main, /if \(changedTeam \|\| p\.status !== PLAYER_STATUS_ALIVE\)/);
 });
 
+test('authoritative team changes and flag drops are announced in the event feed', async () => {
+  const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /p\.name \+ ' \\x08joined the ' \+ teamName/);
+  assert.match(main, /carrier\.name \+ ' \\x08dropped the ' \+ \(flagId === 0 \? 'blue' : 'red'\) \+ ' flag'/);
+});
+
 test('online Escape menu includes the connected server identity', async () => {
   const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
   assert.match(main, /let connectedServerLabel = '';/);
