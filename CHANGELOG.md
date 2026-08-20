@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.20](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.19...v0.5.20) (2026-08-20)
+
+
+### Bug Fixes
+
+* **hud:** sharpen scaled bitmap text ([8bd052e](https://github.com/BaboViolent/baboviolent2-jsclient/commit/8bd052ea1c94d743eff6106a8d640f9ac052a074))
+
 ## [0.5.19](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.18...v0.5.19) (2026-08-20)
 
 
