@@ -9,7 +9,7 @@ import { WorldMapEditor } from './ui/worldMapEditor.js';
 import {
   WEAPONS, PRIMARY_WEAPON_IDS, MELEE_WEAPON_IDS,
   GAME_TYPE_NAMES, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, GAME_PLAYING,
-  PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, CHAT_TEAM_ALL,
+  PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, PLAYER_TEAM_DISCONNECTED, CHAT_TEAM_ALL,
 } from './game/constants.js';
 import { expandCaretColors } from './ui/colorInput.js';
 import { loadBitmapFont, renderBitmapText } from './ui/bitmapText.js';
@@ -516,6 +516,9 @@ function handleNetPacket(typeId, payload) {
       const p = game.players[pid];
       if (p && p !== game.thisPlayer) {
         p.status = PLAYER_STATUS_DEAD;
+        // Player slots are stable protocol IDs, so keep the object available for
+        // reuse but remove it from team, FFA, spectator, and minimap rosters.
+        p.teamID = PLAYER_TEAM_DISCONNECTED;
         game.ui.log('\x03' + (p.name ?? 'Player') + ' disconnected');
       }
       break;

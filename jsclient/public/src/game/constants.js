@@ -28,6 +28,8 @@ export const GAME_DRAW = 2;
 export const GAME_TYPE_NAMES = ['Deathmatch', 'Team Deathmatch', 'Capture The Flag', 'Search & Destroy'];
 
 export const PLAYER_TEAM_SPECTATOR = -1;
+/** Local-only roster state for a player slot released by the server. */
+export const PLAYER_TEAM_DISCONNECTED = -2;
 /** Chat addressed to every team, distinct from spectator chat (Client.cpp:951). */
 export const CHAT_TEAM_ALL = -2;
 export const PLAYER_TEAM_BLUE = 0;
