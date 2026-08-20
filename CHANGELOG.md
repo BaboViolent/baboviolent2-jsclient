@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.23](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.22...v0.5.23) (2026-08-20)
+
+
+### Bug Fixes
+
+* **rendering:** restore skins and sharpen status text ([02bd4c6](https://github.com/BaboViolent/baboviolent2-jsclient/commit/02bd4c688f51e136d77208f7e182def1c77c7648))
+
 ## [0.5.22](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.21...v0.5.22) (2026-08-20)
 
 
