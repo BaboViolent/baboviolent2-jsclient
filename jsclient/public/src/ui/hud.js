@@ -510,15 +510,6 @@ export class Hud {
       flagRow(blueTex, blueVal, '\x01');
     }
 
-    const carriedFlag = game.ctf?.carrierFlagId?.(game.thisPlayer.playerID) ?? -1;
-    if (carriedFlag >= 0) {
-      const label = 'YOU HAVE THE FLAG';
-      const labelSize = Math.round(18 * u);
-      const labelY = rowY + Math.round(2 * u);
-      const tex = carriedFlag === 0 ? blueTex : redTex;
-      if (tex) this.rectNearest(x, labelY, iconSz, iconSz, [1, 1, 1, 1], tex);
-      this.text(labelSize, x + iconSz + Math.round(4 * sx), labelY + Math.round(5 * u), label, TEXT_COLORS[9]);
-    }
   }
 
   /** @deprecated use renderTopLeftHud */
@@ -766,17 +757,6 @@ export class Hud {
       this.renderScreenHit(player, scale);
       this.renderDeathOverlay(player, scale);
       this.renderSniperScope(game, scale);
-      if (game.hitIndicator > 0 && this.icons.crossHit) {
-        const size = 32 * scale;
-        this.rectNearest(
-          (gl.canvas.width - size) / 2,
-          (gl.canvas.height - size) / 2,
-          size,
-          size,
-          [1, 0.2, 0.2, game.hitIndicator],
-          this.icons.crossHit,
-        );
-      }
     }
     this.renderMatchResult(game);
     this.renderPlayerNames(game, scale);

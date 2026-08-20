@@ -277,17 +277,18 @@ export class Game {
 
   confirmLocalHit() {
     const now = this.audio.ctx?.currentTime ?? this.time;
-    this.hitIndicator = 1;
     // Pellets from one action arrive together; one immediate sound avoids a click train.
     // Automatic fire remains responsive while sustained flame cannot stack gain.
     if (now - this.lastHitConfirmAt >= 0.035) {
       this.lastHitConfirmAt = now;
-      void this.audio.play2D('Hit.wav', 210);
+      // The native Windows lookup for `Hit.wav` resolves to the shipped
+      // lowercase `hit.wav` (a different, longer sample on case-sensitive web
+      // hosts) and Player.cpp plays it at volume 250.
+      void this.audio.play2D('hit.wav', 250);
     }
   }
 
   resetHitFeedback() {
-    this.hitIndicator = 0;
     this.lastHitConfirmAt = -Infinity;
   }
 

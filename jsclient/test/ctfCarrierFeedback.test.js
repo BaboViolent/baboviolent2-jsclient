@@ -11,6 +11,6 @@ test('carried flag stays camera-facing above the player and is shown in the HUD'
   assert.match(renderer, /p\[2\] = \(player\.currentCF\.position\[2\]/);
   assert.match(renderer, /\+ 0\.5/);
   assert.doesNotMatch(renderer, /angle = \(player\.currentCF\.angle/);
-  assert.match(hud, /carrierFlagId\?\.\(game\.thisPlayer\.playerID\)/);
-  assert.match(hud, /YOU HAVE THE FLAG/);
+  assert.doesNotMatch(hud, /carrierFlagId\?\.\(game\.thisPlayer\.playerID\)/);
+  assert.doesNotMatch(hud, /YOU HAVE THE FLAG/);
 });

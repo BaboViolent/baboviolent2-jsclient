@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game } from '../public/src/game/game.js';
+import { readFile } from 'node:fs/promises';
 
 function feedbackHarness() {
   const played = [];
@@ -16,13 +17,13 @@ test('shotgun pellets coalesce while SMG and sniper actions remain immediate', (
   const { game, played } = feedbackHarness();
   for (let pellet = 0; pellet < 5; pellet++) game.confirmLocalHit();
   assert.equal(played.length, 1);
-  assert.equal(game.hitIndicator, 1);
+  assert.equal(game.hitIndicator, 0);
   game.audio.ctx.currentTime = 0.04;
   game.confirmLocalHit();
   game.audio.ctx.currentTime = 0.2;
   game.confirmLocalHit();
   assert.equal(played.length, 3);
-  assert.ok(played.every(([asset]) => asset === 'Hit.wav'));
+  assert.ok(played.every(([asset, volume]) => asset === 'hit.wav' && volume === 250));
 });
 
 test('explosion and sustained flame feedback cannot queue future clicks or clip gain', () => {
@@ -32,8 +33,14 @@ test('explosion and sustained flame feedback cannot queue future clicks or clip 
     game.confirmLocalHit();
   }
   assert.ok(played.length <= 25);
-  assert.ok(played.every(([, volume]) => volume === 210));
+  assert.ok(played.every(([, volume]) => volume === 250));
   game.resetHitFeedback();
   assert.equal(game.hitIndicator, 0);
   assert.equal(game.lastHitConfirmAt, -Infinity);
+});
+
+test('damage confirmation has no visual hit-marker overlay', async () => {
+  const hud = await readFile(new URL('../public/src/ui/hud.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(hud, /game\.hitIndicator > 0/);
+  assert.doesNotMatch(hud, /icons\.crossHit/);
 });

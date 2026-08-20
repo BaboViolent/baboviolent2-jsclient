@@ -159,7 +159,7 @@ export class Audio3D {
     return this.play3D(`ric${idx}.wav`, position, { range: 2, volume: 150 });
   }
 
-  /** Player.cpp:986/1061 — attacker hit confirm (Client.cpp: sfxHit = Hit.wav). */
+  /** Player.cpp:986/1061 — attacker hit confirm (Windows resolves Hit.wav to shipped hit.wav). */
   async play2D(file, volume = 255, startDelaySec = 0) {
     if (!this.ctx) return null;
     let buffer;
