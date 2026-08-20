@@ -42,6 +42,7 @@ const mobileControlsRoot = document.getElementById('mobileSpectatorControls');
 const sandboxMapPicker = document.getElementById('sandboxMapPicker');
 const sandboxMapList = document.getElementById('sandboxMapList');
 const sandboxEntry = new URLSearchParams(location.search).get('mode') === 'sandbox';
+if (sandboxEntry) document.getElementById('loading').hidden = true;
 
 const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
 if (!gl) {
@@ -55,6 +56,7 @@ const settings = new ClientSettings();
 const input = new Input(canvas, settings.data.bindings);
 const mobileSpectator = browserIsMobileSpectator();
 const game = new Game(renderer, input);
+game.musicEnabled = !sandboxEntry;
 game.mobileSpectator = mobileSpectator;
 window.bv2 = { game, renderer, assets, settings };
 document.body.classList.toggle('mobile-spectator', mobileSpectator);

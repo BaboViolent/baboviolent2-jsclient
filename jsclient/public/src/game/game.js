@@ -56,6 +56,7 @@ export class Game {
     this.ctf = new CTFState();
     this.exploreMode = false;
     this.onlineMode = false;
+    this.musicEnabled = true;
     /** @type {import('../net/client.js').Bv2Client | null} */
     this.netClient = null;
     this.flagModels = null;
@@ -85,7 +86,8 @@ export class Game {
     map.weather = weatherFromTheme(map.theme);
     await this.renderer.setMap(map);
     this.map = map;
-    this.audio.playMusic();
+    if (this.musicEnabled) this.audio.playMusic();
+    else this.audio.stopMusic();
     this.audio.setMapAmbience(map.weather);
     this.weather.reset(map.weather);
     this.thisPlayer.skinTexture = await this.renderer.loadSkin(

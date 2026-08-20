@@ -10,6 +10,8 @@ test('sandbox URL starts local play and M opens an instant map picker', async ()
 
   assert.match(html, /id="sandboxMapPicker"/);
   assert.match(main, /get\('mode'\) === 'sandbox'/);
+  assert.match(main, /document\.getElementById\('loading'\)\.hidden = true/);
+  assert.match(main, /game\.musicEnabled = !sandboxEntry/);
   assert.match(main, /if \(sandboxEntry\) \{\s*await startLocalPlay\(\)/);
   assert.match(main, /consumePress\('KeyM'\).*setSandboxMapPicker/);
   assert.match(main, /await switchMap\(mapBase\(name\)\)/);
