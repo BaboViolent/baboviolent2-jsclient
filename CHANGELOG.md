@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.0...v0.5.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **sandbox:** bypass boot UI and music ([05dff24](https://github.com/BaboViolent/baboviolent2-jsclient/commit/05dff24bbc68e1514051b4d67d283b9aa159f65f))
+
 ## [0.5.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.4.0...v0.5.0) (2026-08-20)
 
 
