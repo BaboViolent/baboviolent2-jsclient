@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.19](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.18...v0.5.19) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ctf:** use native carried flag transform ([eae42c9](https://github.com/BaboViolent/baboviolent2-jsclient/commit/eae42c9f2af7937ecd0581ae13b7a13f85f93f41))
+
 ## [0.5.18](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.17...v0.5.18) (2026-08-20)
 
 
