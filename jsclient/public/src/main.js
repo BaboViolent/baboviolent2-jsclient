@@ -327,6 +327,17 @@ function applyDropFlag(payload) {
   if (carrierId >= 0) {
     const carrier = getOrCreatePlayer(carrierId);
     game.ui.addEvent('\x07' + carrier.name + ' \x08dropped the ' + (flagId === 0 ? 'blue' : 'red') + ' flag');
+    // A carried flag is dropped only when its carrier dies, disconnects, or
+    // changes team. The latter two paths already update local state, so use
+    // the authoritative drop as a death fallback if a lethal-hit packet was
+    // missed or failed to transition the local player.
+    if (carrier === game.thisPlayer
+      && carrier.status === PLAYER_STATUS_ALIVE
+      && pendingTeamId === null) {
+      game.onPlayerDeath(carrier, null, carrier.weaponID);
+      onlineAwaitingSpawn = true;
+      showIngameMenu();
+    }
   }
   game.ctf.flagState[flagId] = FLAG_DROPPED;
   game.ctf.flagPos[flagId] = [
