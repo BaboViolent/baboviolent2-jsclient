@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.3.2...v0.4.0) (2026-08-20)
+
+
+### Features
+
+* **voting:** add browser vote controls ([4a13ecb](https://github.com/BaboViolent/baboviolent2-jsclient/commit/4a13ecb972f32875524d0fe080e0998a8799691e))
+
 ## [0.3.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.3.1...v0.3.2) (2026-08-20)
 
 
