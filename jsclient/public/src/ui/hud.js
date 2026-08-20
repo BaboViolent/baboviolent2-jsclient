@@ -137,6 +137,7 @@ export class Hud {
     const iconFiles = {
       cartridge: 'CartridgeIcon', grenade: 'GrenadeIcon', molotov: 'molotovIcon',
       blueFlag: 'BlueFlag', redFlag: 'RedFlag',
+      crossHit: 'CrossHit',
     };
     await Promise.all(Object.entries(iconFiles).map(async ([key, file]) => {
       try {
@@ -765,6 +766,17 @@ export class Hud {
       this.renderScreenHit(player, scale);
       this.renderDeathOverlay(player, scale);
       this.renderSniperScope(game, scale);
+      if (game.hitIndicator > 0 && this.icons.crossHit) {
+        const size = 32 * scale;
+        this.rectNearest(
+          (gl.canvas.width - size) / 2,
+          (gl.canvas.height - size) / 2,
+          size,
+          size,
+          [1, 0.2, 0.2, game.hitIndicator],
+          this.icons.crossHit,
+        );
+      }
     }
     this.renderMatchResult(game);
     this.renderPlayerNames(game, scale);

@@ -79,17 +79,18 @@ export function gameVersionAccepted(playerId, password = '') {
 }
 
 export function playerInfo(playerId, name, username = '', password = '') {
-  const p = new Uint8Array(102);
+  // Native gcc ABI: id@0, ip@1, name@17, username@49, password@70, mac@102; sizeof=122.
+  const p = new Uint8Array(122);
   p[0] = playerId & 0xff;
   const enc = new TextEncoder();
-  p.set(enc.encode(name).subarray(0, 31), 1);
-  p.set(enc.encode(username).subarray(0, 20), 33);
-  p.set(enc.encode(password).subarray(0, 31), 54);
+  p.set(enc.encode(name).subarray(0, 31), 17);
+  p.set(enc.encode(username).subarray(0, 20), 49);
+  p.set(enc.encode(password).subarray(0, 31), 70);
   return encodeFrame(NET.CLSV_SVCL_PLAYER_INFO, p);
 }
 
 export function spawnRequest(playerId, weaponId, meleeId, skin = 'skin10', decals = null) {
-  const p = new Uint8Array(22);
+  const p = new Uint8Array(19);
   p[0] = playerId & 0xff;
   p[1] = weaponId & 0xff;
   p[2] = meleeId & 0xff;
@@ -107,6 +108,40 @@ export function teamRequest(playerId, teamId) {
   p[0] = playerId & 0xff;
   p[1] = teamId & 0xff;
   return encodeFrame(NET.CLSV_SVCL_TEAM_REQUEST, p);
+}
+
+export function playerChangeName(playerId, name) {
+  const p = new Uint8Array(33);
+  p[0] = playerId & 0xff;
+  p.set(new TextEncoder().encode(name).subarray(0, 31), 1);
+  return encodeFrame(NET.CLSV_SVCL_PLAYER_CHANGE_NAME, p);
+}
+
+export function playerUpdateSkin(playerId, skin = 'skin10', decals = null) {
+  const p = new Uint8Array(17);
+  p[0] = playerId & 0xff;
+  p.set(new TextEncoder().encode(skin).subarray(0, 6), 1);
+  const d = decals ?? { r: [255, 255, 255], g: [255, 255, 255], b: [255, 255, 255] };
+  p.set(d.r, 8);
+  p.set(d.g, 11);
+  p.set(d.b, 14);
+  return encodeFrame(NET.CLSV_SVCL_PLAYER_UPDATE_SKIN, p);
+}
+
+export function parsePlayerChangeName(payload) {
+  return { playerID: payload[0], name: readFixedStr(payload, 1, 32) };
+}
+
+export function parsePlayerUpdateSkin(payload) {
+  return {
+    playerID: payload[0],
+    skin: readFixedStr(payload, 1, 7),
+    decals: {
+      red: payload.subarray(8, 11),
+      green: payload.subarray(11, 14),
+      blue: payload.subarray(14, 17),
+    },
+  };
 }
 
 export function voteRequest(playerId, command) {
@@ -128,16 +163,16 @@ export function coordFrame(playerId, frameId, pos, vel, mouse, babonetId) {
   const p = new Uint8Array(28);
   const view = new DataView(p.buffer);
   p[0] = playerId & 0xff;
-  view.setInt32(1, frameId, true);
-  view.setInt16(5, Math.round(pos[0] * WIRE_POSITION_SCALE), true);
-  view.setInt16(7, Math.round(pos[1] * WIRE_POSITION_SCALE), true);
-  view.setInt16(9, Math.round(pos[2] * WIRE_POSITION_SCALE), true);
-  p[11] = Math.round(vel[0] * WIRE_VELOCITY_SCALE) & 0xff;
-  p[12] = Math.round(vel[1] * WIRE_VELOCITY_SCALE) & 0xff;
-  p[13] = Math.round(vel[2] * WIRE_VELOCITY_SCALE) & 0xff;
-  view.setInt16(14, Math.round(mouse[0] * WIRE_POSITION_SCALE), true);
-  view.setInt16(16, Math.round(mouse[1] * WIRE_POSITION_SCALE), true);
-  view.setInt16(18, Math.round(mouse[2] * WIRE_POSITION_SCALE), true);
+  view.setInt32(4, frameId, true);
+  view.setInt16(8, Math.round(pos[0] * WIRE_POSITION_SCALE), true);
+  view.setInt16(10, Math.round(pos[1] * WIRE_POSITION_SCALE), true);
+  view.setInt16(12, Math.round(pos[2] * WIRE_POSITION_SCALE), true);
+  p[14] = Math.round(vel[0] * WIRE_VELOCITY_SCALE) & 0xff;
+  p[15] = Math.round(vel[1] * WIRE_VELOCITY_SCALE) & 0xff;
+  p[16] = Math.round(vel[2] * WIRE_VELOCITY_SCALE) & 0xff;
+  view.setInt16(18, Math.round(mouse[0] * WIRE_POSITION_SCALE), true);
+  view.setInt16(20, Math.round(mouse[1] * WIRE_POSITION_SCALE), true);
+  view.setInt16(22, Math.round(mouse[2] * WIRE_POSITION_SCALE), true);
   view.setInt32(24, babonetId, true);
   return encodeFrame(NET.CLSV_SVCL_PLAYER_COORD_FRAME, p);
 }
@@ -181,15 +216,15 @@ export function parsePlayerSpawn(payload) {
     weaponID: payload[1],
     meleeID: payload[2],
     position: [
-      view.getInt16(3, true) / SPAWN_POS_SCALE,
-      view.getInt16(5, true) / SPAWN_POS_SCALE,
-      view.getInt16(7, true) / SPAWN_POS_SCALE,
+      view.getInt16(4, true) / SPAWN_POS_SCALE,
+      view.getInt16(6, true) / SPAWN_POS_SCALE,
+      view.getInt16(8, true) / SPAWN_POS_SCALE,
     ],
-    skin: readFixedStr(payload, 9, 7),
+    skin: readFixedStr(payload, 10, 7),
     decals: {
-      red: payload.subarray(16, 19),
-      green: payload.subarray(19, 22),
-      blue: payload.subarray(22, 25),
+      red: payload.subarray(17, 20),
+      green: payload.subarray(20, 23),
+      blue: payload.subarray(23, 26),
     },
   };
 }
@@ -200,10 +235,10 @@ export function parseCoordFrame(payload) {
   const vel = (i) => (payload[i] << 24 >> 24) / WIRE_VELOCITY_SCALE;
   return {
     playerID: payload[0],
-    frameID: view.getInt32(1, true),
-    position: [scale(5), scale(7), scale(9)],
-    vel: [vel(11), vel(12), vel(13)],
-    mousePos: [scale(14), scale(16), scale(18)],
+    frameID: view.getInt32(4, true),
+    position: [scale(8), scale(10), scale(12)],
+    vel: [vel(14), vel(15), vel(16)],
+    mousePos: [scale(18), scale(20), scale(22)],
   };
 }
 
@@ -312,7 +347,7 @@ export function parsePlayerHit(payload) {
   const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
   return {
     playerID: payload[0],
-    fromID: payload[1],
+    fromID: payload[1] >= 128 ? payload[1] - 256 : payload[1],
     weaponID: payload[2],
     lifeRemaining: view.getFloat32(3, true),
     vel: [

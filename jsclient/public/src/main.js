@@ -15,7 +15,7 @@ import { expandCaretColors } from './ui/colorInput.js';
 import { loadBitmapFont, renderBitmapText } from './ui/bitmapText.js';
 import { Bv2Client, NET_PLAYER_STATUS_ALIVE, NET_PLAYER_STATUS_DEAD } from './net/client.js';
 import { NET } from './net/protocol.js';
-import { parsePlayerEnumState, parsePlayerSpawn, parseCoordFrame, parsePlayerShoot, parsePlayerHit, parseExplosion, parseChat, parseSyncTimer, parsePlayerPing, parsePlayerProjectile, parseProjectileCoordFrame, parseVoteRequest, readFixedStr } from './net/packet.js';
+import { parsePlayerEnumState, parsePlayerSpawn, parseCoordFrame, parsePlayerShoot, parsePlayerHit, parseExplosion, parseChat, parseSyncTimer, parsePlayerPing, parsePlayerProjectile, parseProjectileCoordFrame, parseVoteRequest, parsePlayerChangeName, parsePlayerUpdateSkin, readFixedStr } from './net/packet.js';
 import { FLAG_AT_POD, FLAG_DROPPED } from './game/ctf.js';
 import { decalsForPlayer, normalizeDecals } from './game/skin.js';
 import { WEAPON_FLAME_THROWER, WEAPON_GRENADE, SV_WIN_LIMIT, SV_TIME_TO_SPAWN, PLAYER_Z } from './game/constants.js';
@@ -23,6 +23,8 @@ import { Player } from './game/player.js';
 import { PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD } from './game/constants.js';
 import { formatCountdown } from './ui/timeFormat.js';
 import { browserIsMobileSpectator, MobileSpectatorControls } from './mobile.js';
+import { formatHostPort, joinTargetToWsUrl } from './net/joinTarget.js';
+import { DeferredPacketQueue } from './net/deferredPackets.js';
 
 const canvas = document.getElementById('view');
 const hud = document.getElementById('hud');
@@ -91,7 +93,21 @@ let cancelPendingConnect = null;
 let onlineAwaitingSpawn = false;
 /** Packets sent after map-change are replayed only after the async map load. */
 let mapLoadInFlight = null;
-let deferredMapPackets = [];
+const deferredMapPackets = new DeferredPacketQueue();
+
+function beginDeferredMapLoad(mapName) {
+  deferredMapPackets.reset();
+  const load = switchMap(mapName, { skipSpawn: true, preserveMatchState: true });
+  mapLoadInFlight = load;
+  void load.finally(() => {
+    if (mapLoadInFlight !== load) return;
+    mapLoadInFlight = null;
+    const queued = deferredMapPackets.drain();
+    for (const [queuedType, queuedPayload] of queued) handleNetPacket(queuedType, queuedPayload);
+    updateIngameMenuLabels();
+  });
+  return load;
+}
 /** Team we asked for but the server has not echoed yet; enum packets must not undo it. */
 let pendingTeamId = null;
 /** Last server-confirmed team, retained while the local player is updated optimistically. */
@@ -100,18 +116,6 @@ let pendingPreviousTeamId = null;
 let connectedServerLabel = '';
 /** @type {{ font: import('./ui/font.js').BitmapFont, atlas: HTMLCanvasElement } | null} */
 let igBitmapFont = null;
-
-function joinTargetToWsUrl(raw, defaultPort = 8080) {
-  raw = raw.trim();
-  if (raw.startsWith('ws://') || raw.startsWith('wss://')) {
-    const u = new URL(raw);
-    if (!u.pathname || u.pathname === '/') u.pathname = '/ws';
-    return u.toString();
-  }
-  const [host, portStr] = raw.includes(':') ? raw.split(':') : [raw, String(defaultPort)];
-  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${proto}//${host || '127.0.0.1'}:${Number(portStr) || defaultPort}/ws`;
-}
 
 function netStatusToLocal(status) {
   if (status === NET_PLAYER_STATUS_ALIVE) return PLAYER_STATUS_ALIVE;
@@ -191,12 +195,14 @@ async function applyPlayerSkin(player, skin, decals) {
   }
 }
 
-async function applyPlayerEnum(payload) {
+function applyPlayerEnum(payload) {
   const st = parsePlayerEnumState(payload);
   const p = getOrCreatePlayer(st.playerID);
   const wasAlive = p.status === PLAYER_STATUS_ALIVE;
   const isMe = p === game.thisPlayer;
   const wasSpectating = isMe && game.isSpectating;
+  p._netStateGen = (p._netStateGen ?? 0) + 1;
+  const generation = p._netStateGen;
   p.name = st.name;
   if (!(isMe && pendingTeamId !== null)) {
     p.teamID = st.teamID >= 128 ? st.teamID - 256 : st.teamID;
@@ -215,8 +221,11 @@ async function applyPlayerEnum(payload) {
   if (st.life != null && Number.isFinite(st.life)) {
     p.life = Math.max(0, st.life);
   }
-  if (st.weaponID != null) await game.setWeapon(p, st.weaponID);
-  await applyPlayerSkin(p, st.skin, st.decals);
+  if (st.weaponID != null) {
+    p.weaponID = st.weaponID;
+    void game.setWeapon(p, st.weaponID, generation);
+  }
+  void applyPlayerSkin(p, st.skin, st.decals);
   if (
     p.status === PLAYER_STATUS_DEAD
     && wasAlive
@@ -232,12 +241,13 @@ async function applyPlayerEnum(payload) {
   }
 }
 
-async function applyPlayerSpawn(payload) {
+function applyPlayerSpawn(payload) {
   const sp = parsePlayerSpawn(payload);
   const p = getOrCreatePlayer(sp.playerID);
-  await applyPlayerSkin(p, sp.skin, sp.decals);
-  await game.setWeapon(p, sp.weaponID);
-  await game.setMeleeWeapon(p, sp.meleeID);
+  p._netStateGen = (p._netStateGen ?? 0) + 1;
+  const generation = p._netStateGen;
+  p.weaponID = sp.weaponID;
+  p.meleeWeaponID = sp.meleeID;
   p.pendingWeaponID = sp.weaponID;
   p.pendingMeleeWeaponID = sp.meleeID;
   p.spawnAt(sp.position);
@@ -245,6 +255,9 @@ async function applyPlayerSpawn(payload) {
   p.life = 1;
   p.timeToSpawn = 0;
   p._deathHandled = false;
+  void applyPlayerSkin(p, sp.skin, sp.decals);
+  void game.setWeapon(p, sp.weaponID, generation);
+  void game.setMeleeWeapon(p, sp.meleeID, generation);
   if (sp.playerID === game.thisPlayer.playerID) game.snapCameraToSpawn(sp.position);
   if (sp.playerID === game.thisPlayer.playerID && onlineAwaitingSpawn) {
     onlineAwaitingSpawn = false;
@@ -349,7 +362,10 @@ function applyDropFlag(payload) {
 
 function handleNetPacket(typeId, payload) {
   if (mapLoadInFlight && typeId !== NET.SVCL_MAP_CHANGE && typeId !== NET.SVCL_ROUND_STATE) {
-    deferredMapPackets.push([typeId, new Uint8Array(payload)]);
+    if (!deferredMapPackets.enqueue(typeId, payload)) {
+      game.ui.log('\x04Disconnected: map-load network queue exceeded its safety limit');
+      netClient?.disconnect();
+    }
     return;
   }
   switch (typeId) {
@@ -373,7 +389,7 @@ function handleNetPacket(typeId, payload) {
       }
       const mapName = info.mapName.trim();
       if (mapName && (!game.map || game.map.name !== mapName)) {
-        void switchMap(mapName, { skipSpawn: true, preserveMatchState: true });
+        return beginDeferredMapLoad(mapName);
       }
       updateIngameMenuLabels();
       break;
@@ -387,6 +403,18 @@ function handleNetPacket(typeId, payload) {
     case NET.CLSV_SVCL_PLAYER_COORD_FRAME:
       applyCoordFrame(payload);
       break;
+    case NET.CLSV_SVCL_PLAYER_CHANGE_NAME: {
+      if (payload.length !== 33) break;
+      const update = parsePlayerChangeName(payload);
+      getOrCreatePlayer(update.playerID).name = update.name;
+      break;
+    }
+    case NET.CLSV_SVCL_PLAYER_UPDATE_SKIN: {
+      if (payload.length !== 17) break;
+      const update = parsePlayerUpdateSkin(payload);
+      void applyPlayerSkin(getOrCreatePlayer(update.playerID), update.skin, update.decals);
+      break;
+    }
     case NET.SVCL_PLAYER_SHOOT: {
       const sh = parsePlayerShoot(payload);
       sh.isFlame = sh.weaponID === WEAPON_FLAME_THROWER;
@@ -501,19 +529,7 @@ function handleNetPacket(typeId, payload) {
       // reordered/lost re-init packet never reached this client.
       resetScoreboardStats();
       onlineAwaitingSpawn = false;
-      deferredMapPackets = [];
-      const load = switchMap(mapName, { skipSpawn: true, preserveMatchState: true });
-      mapLoadInFlight = load;
-      void load.finally(() => {
-        if (mapLoadInFlight !== load) return;
-        mapLoadInFlight = null;
-        const queued = deferredMapPackets;
-        deferredMapPackets = [];
-        for (const [queuedType, queuedPayload] of queued) {
-          handleNetPacket(queuedType, queuedPayload);
-        }
-        updateIngameMenuLabels();
-      });
+      beginDeferredMapLoad(mapName);
       break;
     }
     case NET.SVCL_FLAG_ENUM:
@@ -599,6 +615,9 @@ function disconnectOnline() {
   pendingTeamId = null;
   pendingPreviousTeamId = null;
   connectedServerLabel = '';
+  mapLoadInFlight = null;
+  deferredMapPackets.reset();
+  game.resetHitFeedback();
 }
 
 /**
@@ -646,8 +665,9 @@ async function startOnlinePlay(host, port, password, serverName = '') {
   settings.applyToPlayer(game.thisPlayer);
   disconnectOnline();
   game.audio.stopMusic();
-  const wsUrl = joinTargetToWsUrl(`${host}:${port}`, port);
-  connectedServerLabel = serverName ? `${serverName} (${host}:${port})` : `${host}:${port}`;
+  const target = port == null ? host : formatHostPort(host, port);
+  const wsUrl = joinTargetToWsUrl(target, port ?? 8080, location.protocol);
+  connectedServerLabel = serverName ? `${serverName} (${target})` : target;
   hud.textContent = `connecting ${wsUrl}...`;
   game.ui.log('\x09Connecting to ' + wsUrl);
 
@@ -670,8 +690,10 @@ async function startOnlinePlay(host, port, password, serverName = '') {
       name: settings.data.playerName,
       password,
       onPacket: (typeId, payload) => {
-        handleNetPacket(typeId, payload);
-        if (typeId === NET.SVCL_SERVER_INFO) finish(resolve);
+        const applied = handleNetPacket(typeId, payload);
+        if (typeId === NET.SVCL_SERVER_INFO) {
+          Promise.resolve(applied).then(() => finish(resolve), (error) => finish(reject, error));
+        }
       },
       onDisconnect: () => {
         if (game.onlineMode) {
@@ -1059,6 +1081,8 @@ async function boot() {
   };
 
   menu2 = new Menu2({ settings, game, assets });
+  menu2.onProfileNameChange = (name) => netClient?.updateProfileName(name);
+  menu2.onProfileSkinChange = (skin, decals) => netClient?.updateProfileSkin(skin, decals);
   worldEditor = new WorldMapEditor({
     root: worldEditorRoot, canvas, game, renderer, input,
     onExit: () => {

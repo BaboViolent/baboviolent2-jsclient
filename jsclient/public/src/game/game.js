@@ -73,8 +73,8 @@ export class Game {
     this.editorMap = null;
     this.editorHover = null;
     this.viewShake = 0;
-    /** Timestamp in AudioContext seconds for next local hit-marker playback. */
-    this.nextHitMarkerAt = 0;
+    this.hitIndicator = 0;
+    this.lastHitConfirmAt = -Infinity;
   }
 
   /** Spectators have no body: they observe from a free camera (Game.cpp:581). */
@@ -83,6 +83,7 @@ export class Game {
   }
 
   async setMap(map, { skipSpawn = false, preserveMatchState = false } = {}) {
+    this.resetHitFeedback();
     map.weather = weatherFromTheme(map.theme);
     await this.renderer.setMap(map);
     this.map = map;
@@ -162,20 +163,22 @@ export class Game {
     return this.projectileModels[key];
   }
 
-  async setWeapon(player, weaponID) {
+  async setWeapon(player, weaponID, expectedNetGeneration = null) {
     const weapon = new Weapon(weaponID);
     weapon.setModel(await this.loadBuiltModel(WEAPONS[weaponID].model));
+    if (expectedNetGeneration !== null && player._netStateGen !== expectedNetGeneration) return null;
     player.weapon = weapon;
     player.weaponID = weaponID;
     return weapon;
   }
 
-  async setMeleeWeapon(player, weaponID) {
+  async setMeleeWeapon(player, weaponID, expectedNetGeneration = null) {
     const weapon = new Weapon(weaponID);
     weapon.setModel(await this.loadBuiltModel(WEAPONS[weaponID].model));
     if (weaponID === WEAPON_SHIELD) {
       weapon.builtAlt = await this.loadBuiltModel('ShieldMagnet.DKO');
     }
+    if (expectedNetGeneration !== null && player._netStateGen !== expectedNetGeneration) return null;
     player.meleeWeapon = weapon;
     player.meleeWeaponID = weaponID;
     return weapon;
@@ -272,12 +275,20 @@ export class Game {
     return this.players.find((p) => p && p.playerID === id) ?? null;
   }
 
-  scheduleLocalHitMarkerDelay() {
-    const now = this.audio.ctx ? this.audio.ctx.currentTime : 0;
-    const markerGap = 0.06;
-    const scheduled = Math.max(now, this.nextHitMarkerAt);
-    this.nextHitMarkerAt = scheduled + markerGap;
-    return scheduled - now;
+  confirmLocalHit() {
+    const now = this.audio.ctx?.currentTime ?? this.time;
+    this.hitIndicator = 1;
+    // Pellets from one action arrive together; one immediate sound avoids a click train.
+    // Automatic fire remains responsive while sustained flame cannot stack gain.
+    if (now - this.lastHitConfirmAt >= 0.035) {
+      this.lastHitConfirmAt = now;
+      void this.audio.play2D('Hit.wav', 210);
+    }
+  }
+
+  resetHitFeedback() {
+    this.hitIndicator = 0;
+    this.lastHitConfirmAt = -Infinity;
   }
 
   /** Game.cpp:603 — push thisPlayer off overlapping babos, then map clip. */
@@ -320,6 +331,7 @@ export class Game {
   update(delay) {
     if (!this.map) return;
     this.time += delay;
+    this.hitIndicator = Math.max(0, this.hitIndicator - delay);
     if (this.roundState === GAME_PLAYING && this.ui.playing && !this.ui.menuOpen && !this.ui.consoleActive && !this.ui.chatActive) {
       this.gameTimeLeft = Math.max(0, this.gameTimeLeft - delay);
     }
@@ -879,14 +891,14 @@ export class Game {
     victim.life = Math.max(0, hit.lifeRemaining);
     const dealt = Math.max(0, prevLife - victim.life);
     if (dealt > 0) {
-      victim.damage = (victim.damage ?? 0) + dealt;
+      // Scoreboard damage is server-owned online; its enum update identifies the attacker.
       victim.screenHit = Math.min(1, dealt);
       this.audio.playHit(victim.currentCF.position);
       this.decals.spawnBlood(victim.currentCF.position, dealt);
       EFFECTS.blood(this.particles, victim.currentCF.position, [0, 0, 1], dealt);
       const attacker = this.resolvePlayer(hit.fromID);
       if (attacker === this.thisPlayer && attacker !== victim) {
-        void this.audio.play2D('Hit.wav', 250, this.scheduleLocalHitMarkerDelay());
+        this.confirmLocalHit();
       }
     }
     if (victim === this.thisPlayer && hit.vel) {
@@ -1084,15 +1096,17 @@ export class Game {
     EFFECTS.blood(this.particles, victim.currentCF.position, [0, 0, 1], cdamage);
 
     victim.life -= cdamage;
-    victim.damage = (victim.damage ?? 0) + cdamage;
     victim.screenHit = Math.min(1, (victim.screenHit ?? 0) + cdamage);
     if (cdamage > 1) victim.screenHit = Math.min(1, cdamage);
 
     const attacker = from?.playerID != null
       ? this.players.find((p) => p.playerID === from.playerID)
       : from;
+    if (attacker && attacker !== victim) {
+      attacker.damage = (attacker.damage ?? 0) + cdamage;
+    }
     if (attacker === this.thisPlayer && attacker !== victim) {
-      void this.audio.play2D('Hit.wav', 250, this.scheduleLocalHitMarkerDelay());
+      this.confirmLocalHit();
     }
 
     if (victim.life <= 0) {

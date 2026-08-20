@@ -4,6 +4,7 @@ import { ProfilePreview } from './profilePreview.js';
 import { attachBv2TextInput } from './colorInput.js';
 import { MapEditor } from './mapEditor.js';
 import { createMenuPanelMotion, stepMenuPanelMotion } from './menuPanelMotion.js';
+import { formatHostPort } from '../net/joinTarget.js';
 
 const TABS = [
   { id: 'profile', label: 'Profile' },
@@ -61,6 +62,8 @@ export class Menu2 {
     this.panels = {};
     this.onResume = null;
     this.onCancelJoin = null;
+    this.onProfileNameChange = null;
+    this.onProfileSkinChange = null;
     this.sessionActive = false;
     this.mapNames = [];
     this.bgUrls = null;
@@ -320,6 +323,7 @@ export class Menu2 {
       this.settings.applyToPlayer(this.game.thisPlayer);
       void this.updateProfilePreview();
       void this.reloadPlayerSkin();
+      this.onProfileSkinChange?.(this.settings.skinName, s.decals);
     };
 
     void attachBv2TextInput(document.getElementById('profName'), {
@@ -330,6 +334,7 @@ export class Menu2 {
       onChange: () => {
         this.settings.save();
         this.settings.applyToPlayer(this.game.thisPlayer);
+        this.onProfileNameChange?.(s.playerName);
       },
     });
 
@@ -369,13 +374,13 @@ export class Menu2 {
     document.getElementById('btnRefresh').addEventListener('click', () => this.refreshServers());
     document.getElementById('btnJoin').addEventListener('click', () => {
       const raw = document.getElementById('joinIP').value.trim();
-      const [ip, port] = raw.includes(':') ? raw.split(':') : [raw, String(s.lastPort)];
-      s.lastIP = ip || '127.0.0.1';
-      s.lastPort = Number(port) || 8080;
+      s.lastIP = raw || '127.0.0.1';
+      // The raw target may already contain a port, IPv6 brackets, scheme, or path.
+      s.lastPort = 0;
       s.joinPassword = document.getElementById('joinPass').value;
       this.settings.save();
       if (this.onJoin) {
-        void this.onJoin(s.lastIP, s.lastPort, s.joinPassword);
+        void this.onJoin(s.lastIP, null, s.joinPassword);
       }
     });
   }
@@ -400,7 +405,7 @@ export class Menu2 {
       list.querySelectorAll('li[data-ip]').forEach((li) => {
         li.addEventListener('click', () => {
           const s = this.settings.data;
-          document.getElementById('joinIP').value = `${li.dataset.ip}:${li.dataset.port}`;
+          document.getElementById('joinIP').value = formatHostPort(li.dataset.ip, li.dataset.port);
           s.lastIP = li.dataset.ip;
           s.lastPort = Number(li.dataset.port);
           this.settings.save();

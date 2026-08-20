@@ -5,6 +5,7 @@ import {
   teamRequest, coordFrame, pong, readFixedStr, GAME_VERSION_SV,
   playerShoot, playerProjectile, shootMelee, pickupRequest, reportExplosion, reportBurn, chatMessage,
   voteRequest, voteResponse,
+  playerChangeName, playerUpdateSkin,
 } from './packet.js';
 import { wireDecalsFromFloats } from '../game/skin.js';
 
@@ -30,6 +31,7 @@ export class Bv2Client {
     this.connected = false;
     this._rx = new Uint8Array(0);
     this._frameId = 0;
+    this._profileTimers = { name: null, skin: null };
   }
 
   connect() {
@@ -56,10 +58,32 @@ export class Bv2Client {
   }
 
   disconnect() {
+    clearTimeout(this._profileTimers.name);
+    clearTimeout(this._profileTimers.skin);
     this.ws?.close();
     this.ws = null;
     this.connected = false;
     this.playerId = -1;
+  }
+
+  updateProfileName(name) {
+    if (this.playerId < 0 || !this.connected) return;
+    this.name = name;
+    clearTimeout(this._profileTimers.name);
+    this._profileTimers.name = setTimeout(() => {
+      this._profileTimers.name = null;
+      if (this.playerId >= 0 && this.connected) this.send(playerChangeName(this.playerId, this.name));
+    }, 100);
+  }
+
+  updateProfileSkin(skin, decals) {
+    if (this.playerId < 0 || !this.connected) return;
+    const wireDecals = wireDecalsFromFloats(decals);
+    clearTimeout(this._profileTimers.skin);
+    this._profileTimers.skin = setTimeout(() => {
+      this._profileTimers.skin = null;
+      if (this.playerId >= 0 && this.connected) this.send(playerUpdateSkin(this.playerId, skin, wireDecals));
+    }, 100);
   }
 
   send(data) {
@@ -110,6 +134,8 @@ export class Bv2Client {
 
   sendCoordFrame(game, player) {
     if (this.playerId < 0 || !this.connected) return;
+    // WebSocket is ordered TCP: do not add stale snapshots behind congestion.
+    if ((this.ws?.bufferedAmount ?? 0) > 4096) return;
     this._frameId++;
     const p = player.currentCF.position;
     const v = player.currentCF.vel ?? [0, 0, 0];

@@ -8,7 +8,8 @@ test('joining an active server preserves authoritative score and timer through m
     readFile(new URL('../public/src/game/game.js', import.meta.url), 'utf8'),
   ]);
 
-  assert.match(main, /case NET\.SVCL_SERVER_INFO:[\s\S]*?preserveMatchState: true/);
+  assert.match(main, /case NET\.SVCL_SERVER_INFO:[\s\S]*?beginDeferredMapLoad\(mapName\)/);
+  assert.match(main, /function beginDeferredMapLoad[\s\S]*?preserveMatchState: true/);
   assert.match(main, /async function switchMap\(name, \{ skipSpawn = false, preserveMatchState = false \}/);
   assert.match(game, /initGameMode\(\{ preserveScores: preserveMatchState \}\)/);
   assert.match(game, /if \(!preserveMatchState\) this\.gameTimeLeft = this\.gameTimeLimit/);
