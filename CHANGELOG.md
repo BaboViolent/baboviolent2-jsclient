@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.16](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.15...v0.5.16) (2026-08-20)
+
+
+### Bug Fixes
+
+* **network:** apply authoritative flame attachments ([4a89621](https://github.com/BaboViolent/baboviolent2-jsclient/commit/4a89621698582abe8bde51e7733f49918415b807))
+
 ## [0.5.15](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.14...v0.5.15) (2026-08-20)
 
 
