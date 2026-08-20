@@ -58,7 +58,9 @@ export class GameUI {
     const teamMode = this.game.gameType === GAME_TYPE_TDM || this.game.gameType === GAME_TYPE_CTF;
     const kTeam = teamMode ? (killer.teamID === 0 ? '{' : killer.teamID === 1 ? '}' : '') : '';
     const vTeam = teamMode ? (victim.teamID === 0 ? '{' : victim.teamID === 1 ? '}' : '') : '';
-    this.addEvent(`${kTeam}${killer.name}\x08 ----- ${weapon} -----\x08 ${vTeam}${victim.name}`);
+    const killerReset = teamMode ? '' : '\x09';
+    const victimReset = teamMode ? '' : '\x09';
+    this.addEvent(`${killerReset}${kTeam}${killer.name}\x08 ----- ${weapon} -----\x08 ${victimReset}${vTeam}${victim.name}`);
   }
 
   update(delay) {

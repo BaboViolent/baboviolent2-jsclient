@@ -94,6 +94,8 @@ let mapLoadInFlight = null;
 let deferredMapPackets = [];
 /** Team we asked for but the server has not echoed yet; enum packets must not undo it. */
 let pendingTeamId = null;
+/** Human-readable identity of the active online server. */
+let connectedServerLabel = '';
 /** @type {{ font: import('./ui/font.js').BitmapFont, atlas: HTMLCanvasElement } | null} */
 let igBitmapFont = null;
 
@@ -565,6 +567,7 @@ function disconnectOnline() {
   game.onlineMode = false;
   onlineAwaitingSpawn = false;
   pendingTeamId = null;
+  connectedServerLabel = '';
 }
 
 /**
@@ -579,10 +582,11 @@ function joinTeamOnline(teamId) {
   }
   const p = game.thisPlayer;
   const wasSpectating = game.isSpectating;
+  const changedTeam = p.teamID !== teamId;
   p.teamID = teamId;
   pendingTeamId = teamId;
   netClient?.requestTeam(teamId);
-  if (p.status !== PLAYER_STATUS_ALIVE) {
+  if (changedTeam || p.status !== PLAYER_STATUS_ALIVE) {
     // Carry the free camera over so the wait isn't spent staring at the map corner.
     if (wasSpectating) {
       p.currentCF.position = [game.specLookAt[0], game.specLookAt[1], PLAYER_Z];
@@ -606,11 +610,12 @@ function requestOnlineSpawn() {
   );
 }
 
-async function startOnlinePlay(host, port, password) {
+async function startOnlinePlay(host, port, password, serverName = '') {
   settings.applyToPlayer(game.thisPlayer);
   disconnectOnline();
   game.audio.stopMusic();
   const wsUrl = joinTargetToWsUrl(`${host}:${port}`, port);
+  connectedServerLabel = serverName ? `${serverName} (${host}:${port})` : `${host}:${port}`;
   hud.textContent = `connecting ${wsUrl}...`;
   game.ui.log('\x09Connecting to ' + wsUrl);
 
@@ -785,7 +790,10 @@ function updateIngameMenuLabels() {
     const subs = {
       [GAME_TYPE_DM]: 'Free-for-all',
     };
-    igGameSubtitle.textContent = subs[gt] ?? '';
+    const mode = subs[gt] ?? '';
+    igGameSubtitle.textContent = connectedServerLabel
+      ? `${connectedServerLabel}${mode ? ` · ${mode}` : ''}`
+      : mode;
   }
   const map = game.map;
   if (map && igBitmapFont && igMapInfoCanvas) {
@@ -1011,7 +1019,7 @@ async function boot() {
     game.audio.setMasterVolume(settings.data.masterVolume / 255);
   }
 
-  window.bv2Connect = (host, port, pass) => startOnlinePlay(host, port, pass);
+  window.bv2Connect = (host, port, pass, name) => startOnlinePlay(host, port, pass, name);
   window.bv2Disconnect = () => {
     disconnectOnline();
     endSession();
@@ -1033,10 +1041,10 @@ async function boot() {
     await worldEditor.start(map);
   };
   menu2.onResume = () => resumeOrStart();
-  menu2.onJoin = async (host, port, password) => {
+  menu2.onJoin = async (host, port, password, serverName = '') => {
     menu2.setConnecting(`Connecting to ${host}:${port}…`);
     try {
-      await startOnlinePlay(host, port, password);
+      await startOnlinePlay(host, port, password, serverName);
       menu2.setConnecting('', { visible: false });
     } catch (err) {
       hud.textContent = String(err.message ?? err);

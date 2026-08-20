@@ -86,7 +86,8 @@ test('kill feed uses neutral names in FFA and team colors in CTF', () => {
 
   game.gameType = GAME_TYPE_DM;
   ui.addKill(killer, victim, 0);
-  assert.equal(ui.eventMessages.at(-1).message.startsWith('Killer'), true);
+  assert.equal(ui.eventMessages.at(-1).message.startsWith('\x09Killer'), true);
+  assert.equal(ui.eventMessages.at(-1).message.includes('\x08 \x09Victim'), true);
   assert.equal(ui.eventMessages.at(-1).message.includes('{Killer'), false);
   assert.equal(ui.eventMessages.at(-1).message.includes('}Victim'), false);
 
