@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.2...v0.5.3) (2026-08-20)
+
+
+### Bug Fixes
+
+* **ctf:** announce authoritative flag returns ([c51c31a](https://github.com/BaboViolent/baboviolent2-jsclient/commit/c51c31a10e8d183106d53f06f2e979584dfb9f0b))
+
 ## [0.5.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.1...v0.5.2) (2026-08-20)
 
 
