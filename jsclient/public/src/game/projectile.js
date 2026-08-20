@@ -394,7 +394,10 @@ export function createFlameField(center, ownerID, scatterVel, normal, opts = {})
   const sv = scatterVel ?? [0, 0, 0];
   const speed = Math.hypot(sv[0], sv[1], sv[2]);
   if (speed > 0.01) {
-    const vel = reflect([sv[0], sv[1], sv[2]], [nx, ny, nz]);
+    // GameProjectile.cpp: reflected impact velocity is halved before the
+    // random spread is added. Using the full throw velocity separates the
+    // second flame far beyond the native two-patch footprint.
+    const vel = reflect([sv[0] * 0.5, sv[1] * 0.5, sv[2] * 0.5], [nx, ny, nz]);
     vel[0] += randRange(-1, 1);
     vel[1] += randRange(-1, 1);
     vel[2] += randRange(0, 1);
