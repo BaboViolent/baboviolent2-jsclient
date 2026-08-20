@@ -22,6 +22,20 @@ export function joinTargetToWsUrl(raw, defaultPort = 8080, pageProtocol = 'http:
   return url.toString();
 }
 
+export function hostedJoinTargetToWsUrl(raw) {
+  const url = new URL(joinTargetToWsUrl(raw, 443, 'https:'));
+  url.protocol = 'wss:';
+  url.port = '';
+  url.pathname = '/ws';
+  url.search = '';
+  url.hash = '';
+  return url.toString();
+}
+
+export function hostedJoinHostname(raw) {
+  return new URL(hostedJoinTargetToWsUrl(raw)).hostname;
+}
+
 export function formatHostPort(host, port) {
   return `${bracketHost(String(host))}:${Number(port)}`;
 }

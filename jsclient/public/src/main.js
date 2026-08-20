@@ -23,7 +23,7 @@ import { Player } from './game/player.js';
 import { PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD } from './game/constants.js';
 import { formatCountdown } from './ui/timeFormat.js';
 import { browserIsMobileSpectator, MobileSpectatorControls } from './mobile.js';
-import { formatHostPort, joinTargetToWsUrl } from './net/joinTarget.js';
+import { formatHostPort, hostedJoinTargetToWsUrl } from './net/joinTarget.js';
 import { DeferredPacketQueue } from './net/deferredPackets.js';
 
 const canvas = document.getElementById('view');
@@ -668,7 +668,7 @@ async function startOnlinePlay(host, port, password, serverName = '') {
   disconnectOnline();
   game.audio.stopMusic();
   const target = port == null ? host : formatHostPort(host, port);
-  const wsUrl = joinTargetToWsUrl(target, port ?? 8080, location.protocol);
+  const wsUrl = hostedJoinTargetToWsUrl(target);
   connectedServerLabel = serverName ? `${serverName} (${target})` : target;
   hud.textContent = `connecting ${wsUrl}...`;
   game.ui.log('\x09Connecting to ' + wsUrl);

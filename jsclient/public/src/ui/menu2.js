@@ -1,6 +1,7 @@
 // Menu2 shell — CMainTab.cpp / MenuSetup.cpp (800×600 overlay).
 import { loadMenuBackgrounds, applyPanelBackground } from './menuAssets.js';
 import { ProfilePreview } from './profilePreview.js';
+import { hostedJoinHostname } from '../net/joinTarget.js';
 import { attachBv2TextInput } from './colorInput.js';
 import { MapEditor } from './mapEditor.js';
 import { createMenuPanelMotion, stepMenuPanelMotion } from './menuPanelMotion.js';
@@ -368,7 +369,7 @@ export class Menu2 {
       </div>`;
 
     const s = this.settings.data;
-    document.getElementById('joinIP').value = s.lastIP + (s.lastPort ? `:${s.lastPort}` : '');
+    document.getElementById('joinIP').value = hostedJoinHostname(s.lastIP);
     document.getElementById('joinPass').value = s.joinPassword;
     document.getElementById('btnRefresh').addEventListener('click', () => this.refreshServers());
     document.getElementById('btnJoin').addEventListener('click', () => {
@@ -399,20 +400,20 @@ export class Menu2 {
         return;
       }
       list.innerHTML = servers.map((sv) =>
-        `<li data-ws-url="${escapeHtml(sv.wsUrl)}" data-name="${escapeHtml(sv.name)}"><strong>${escapeHtml(sv.name)}</strong> — ${escapeHtml(sv.map)} (${Number(sv.players)}/${Number(sv.maxPlayers)}) ping ${Number(sv.ping)}ms</li>`,
+        `<li data-host="${escapeHtml(sv.ip)}" data-name="${escapeHtml(sv.name)}"><strong>${escapeHtml(sv.name)}</strong> — ${escapeHtml(sv.map)} (${Number(sv.players)}/${Number(sv.maxPlayers)}) ping ${Number(sv.ping)}ms</li>`,
       ).join('');
-      list.querySelectorAll('li[data-ws-url]').forEach((li) => {
+      list.querySelectorAll('li[data-host]').forEach((li) => {
         li.addEventListener('click', () => {
           const s = this.settings.data;
-          document.getElementById('joinIP').value = li.dataset.wsUrl;
-          s.lastIP = li.dataset.wsUrl;
+          document.getElementById('joinIP').value = li.dataset.host;
+          s.lastIP = li.dataset.host;
           s.lastPort = 0;
           this.settings.save();
         });
         li.addEventListener('dblclick', () => {
           if (this.onJoin) {
             const s = this.settings.data;
-            void this.onJoin(li.dataset.wsUrl, null, s.joinPassword ?? '', li.dataset.name ?? '');
+            void this.onJoin(li.dataset.host, null, s.joinPassword ?? '', li.dataset.name ?? '');
           }
         });
       });
