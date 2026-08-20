@@ -362,6 +362,17 @@ function applyDropFlag(payload) {
   ];
 }
 
+function applyFlameStick(payload) {
+  if (payload.length < 5) return;
+  const projectileId = new DataView(payload.buffer, payload.byteOffset, 4).getInt32(0, true);
+  const playerId = payload[4] >= 128 ? payload[4] - 256 : payload[4];
+  const flame = game.projectiles.find((p) => p.uniqueID === projectileId);
+  if (!flame) return;
+  flame.stickToPlayer = playerId;
+  flame.movementLock = playerId >= 0;
+  flame.stickFor = playerId >= 0 ? 3 : 1;
+}
+
 function handleNetPacket(typeId, payload) {
   if (mapLoadInFlight && typeId !== NET.SVCL_MAP_CHANGE && typeId !== NET.SVCL_ROUND_STATE) {
     if (!deferredMapPackets.enqueue(typeId, payload)) {
@@ -542,6 +553,9 @@ function handleNetPacket(typeId, payload) {
       break;
     case NET.SVCL_CHANGE_FLAG_STATE:
       applyChangeFlagState(payload);
+      break;
+    case NET.SVCL_FLAME_STICK_TO_PLAYER:
+      applyFlameStick(payload);
       break;
     case NET.SVCL_PLAYER_PING: {
       const pp = parsePlayerPing(payload);
