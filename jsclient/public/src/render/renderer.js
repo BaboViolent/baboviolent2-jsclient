@@ -579,35 +579,26 @@ export class Renderer {
       const carrier = game.ctf.flagState[i];
       const p = [...f.pos];
       let angle = 0;
-      let carried = false;
       if (carrier >= 0) {
         const player = game.players.find((pl) => pl.playerID === carrier);
         if (player) {
-          // The DKO cloth is authored upright in X/Z. Lay carried cloth into
-          // X/Y so its full face remains visible to the top-down camera; a Z
-          // rotation alone leaves its thin edge facing the camera and makes
-          // parts of the waving animation appear to vanish.
+          // Player.cpp:645 + MapRender.cpp:780 — the native client keeps the
+          // DKO upright at the carrier and rotates it with angle - 90. Laying
+          // it flat makes the rotating weapon depth-occlude the flag.
           p[0] = player.currentCF.position[0];
           p[1] = player.currentCF.position[1];
-          p[2] = (player.currentCF.position[2] ?? 0.25) + 0.5;
-          carried = true;
+          p[2] = player.currentCF.position[2] ?? 0.25;
+          angle = (player.currentCF.angle - 90) * (Math.PI / 180);
         }
       }
       const c = Math.cos(angle) * scale;
       const s = Math.sin(angle) * scale;
-      const modelMatrix = carried
-        ? new Float32Array([
-          c, s, 0, 0,
-          0, 0, scale, 0,
-          -s, c, 0, 0,
-          p[0], p[1], p[2], 1,
-        ])
-        : new Float32Array([
-          c, s, 0, 0,
-          -s, c, 0, 0,
-          0, 0, scale, 0,
-          p[0], p[1], p[2] ?? 0.25, 1,
-        ]);
+      const modelMatrix = new Float32Array([
+        c, s, 0, 0,
+        -s, c, 0, 0,
+        0, 0, scale, 0,
+        p[0], p[1], p[2] ?? 0.25, 1,
+      ]);
       this.models.draw(f.built, modelMatrix, anim);
     }
     gl.bindVertexArray(null);
