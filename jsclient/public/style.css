@@ -595,6 +595,31 @@ html, body {
   font-family: monospace;
 }
 
+.sandbox-map-picker[hidden] { display: none !important; }
+.sandbox-map-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(4, 8, 15, .82);
+}
+.sandbox-map-card {
+  width: min(760px, 92vw);
+  max-height: 82vh;
+  overflow: auto;
+  padding: 28px;
+  border: 1px solid rgba(108, 170, 255, .65);
+  background: rgba(10, 30, 61, .96);
+  box-shadow: 0 18px 60px #000b;
+  color: #fff;
+  font-family: Tahoma, sans-serif;
+}
+.sandbox-map-card h1 { margin: 0 0 8px; text-transform: uppercase; }
+.sandbox-map-card p { margin: 0 0 20px; color: #c9d7eb; }
+.sandbox-map-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+
 .mobile-spectator-controls[hidden] { display: none !important; }
 .mobile-spectator-controls {
   position: fixed;

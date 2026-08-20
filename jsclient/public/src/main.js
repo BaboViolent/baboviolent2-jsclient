@@ -39,6 +39,9 @@ const btnDisconnect = document.getElementById('btnDisconnect');
 const btnMainMenu = document.getElementById('btnMainMenu');
 const worldEditorRoot = document.getElementById('worldEditor');
 const mobileControlsRoot = document.getElementById('mobileSpectatorControls');
+const sandboxMapPicker = document.getElementById('sandboxMapPicker');
+const sandboxMapList = document.getElementById('sandboxMapList');
+const sandboxEntry = new URLSearchParams(location.search).get('mode') === 'sandbox';
 
 const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
 if (!gl) {
@@ -733,6 +736,31 @@ function cycleMap(delta) {
   switchMap(mapBase(next));
 }
 
+function setSandboxMapPicker(open) {
+  if (!game.exploreMode || !sandboxMapPicker) return;
+  sandboxMapPicker.hidden = !open;
+  game.ui.menuOpen = open;
+  canvas.style.cursor = open ? 'default' : 'crosshair';
+  if (!open) canvas.focus();
+}
+
+function buildSandboxMapPicker() {
+  if (!sandboxMapList) return;
+  sandboxMapList.replaceChildren(...mapNames.map((name) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'menu-btn';
+    button.textContent = mapBase(name);
+    button.addEventListener('click', async () => {
+      settings.data.exploreMap = name;
+      settings.save();
+      setSandboxMapPicker(false);
+      await switchMap(mapBase(name));
+    });
+    return button;
+  }));
+}
+
 function updateIngameMenuLabels() {
   if (game.exploreMode) {
     const gt = game.gameType;
@@ -1042,13 +1070,18 @@ async function boot() {
   }
   menu2.setMapNames(mapNames);
   settings.data.exploreMap = settings.data.exploreMap || mapNames[0];
+  buildSandboxMapPicker();
 
-  await menu2.runIntro();
+  if (!sandboxEntry) await menu2.runIntro();
 
   await menu2.loadAssets();
   igBitmapFont = await loadBitmapFont(assets);
-  menu2.show();
-  void switchMap(mapBase(mapNames[0]));
+  if (sandboxEntry) {
+    await startLocalPlay();
+  } else {
+    menu2.show();
+    void switchMap(mapBase(mapNames[0]));
+  }
 
   let last = performance.now();
   const TICK_MS = 1000 / 60;
@@ -1057,6 +1090,10 @@ async function boot() {
     const now = performance.now();
     const delay = Math.min((now - last) / 1000, 0.1);
     last = now;
+
+    if (!sandboxMapPicker?.hidden && (input.consumePress('KeyM') || input.consumePress('Escape'))) {
+      setSandboxMapPicker(false);
+    }
 
     if (worldEditor.active) {
       if (input.consumePress('Escape')) {
@@ -1086,7 +1123,8 @@ async function boot() {
 
     if (game.ui.playing && !game.ui.menuOpen && !game.ui.consoleActive && !game.ui.chatActive) {
       if (game.exploreMode) {
-        if (input.consumePress('KeyM') || input.consumePress('BracketRight')) cycleMap(1);
+        if (input.consumePress('KeyM')) setSandboxMapPicker(sandboxMapPicker?.hidden ?? true);
+        if (input.consumePress('BracketRight')) cycleMap(1);
         if (input.consumePress('BracketLeft')) cycleMap(-1);
         for (let i = 0; i < 8; i++) {
           const code = `Digit${i + 1}`;
