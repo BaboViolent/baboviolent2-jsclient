@@ -723,14 +723,13 @@ export class Hud {
   /** Player.cpp::renderName: center the bitmap name 28 px above each living Babo. */
   renderPlayerNames(game, scale) {
     const gl = this.gl;
-    const fontSize = 22 * scale;
+    const fontSize = 28 * scale;
     const offset = 28 * scale;
     for (const player of game.players) {
       if (player.status !== PLAYER_STATUS_ALIVE || !player.onScreenPos || !player.name) continue;
       const [x, y] = player.onScreenPos;
       if (x <= 0 || x >= gl.canvas.width || y <= 0 || y >= gl.canvas.height) continue;
       const name = String(player.name).slice(0, 31);
-      this.textCenter(fontSize, x + scale, y - offset + scale, name, [0, 0, 0, 0.9]);
       this.textCenter(fontSize, x, y - offset, name, TEXT_COLORS[9]);
     }
   }
