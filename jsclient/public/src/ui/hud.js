@@ -707,12 +707,25 @@ export class Hud {
 
     drawHeader();
 
+    const drawSpectators = () => {
+      this.rect(boardX, y, boardW, rowH, [0.5, 0.5, 0.5, 0.82]);
+      this.text(fontSz, col.name, y + padY, 'SPECTATORS', TEXT_COLORS[9]);
+      y += rowH;
+      const spectators = game.players
+        .filter((pl) => pl.teamID === PLAYER_TEAM_SPECTATOR)
+        .sort(compareScoreboardPlayers);
+      for (const p of spectators) drawPlayerRow(p);
+    };
+
     if (isFFA) {
       this.rect(boardX, y, boardW, rowH, [0.38, 0.38, 0.42, 0.92]);
       this.text(fontSz, col.name, y + padY, 'FREE FOR ALL', TEXT_COLORS[9]);
       y += rowH;
-      const sorted = [...game.players].sort(compareScoreboardPlayers);
+      const sorted = game.players
+        .filter((pl) => pl.teamID === PLAYER_TEAM_BLUE || pl.teamID === PLAYER_TEAM_RED)
+        .sort(compareScoreboardPlayers);
       for (const p of sorted) drawPlayerRow(p);
+      drawSpectators();
     } else {
       const drawTeam = (teamId, label, barColor, teamScore) => {
         this.rect(boardX, y, boardW, rowH, barColor);
@@ -737,13 +750,7 @@ export class Hud {
         isCTF ? (game.ctf?.redWin ?? 0) : (game.redScore ?? 0),
       );
 
-      this.rect(boardX, y, boardW, rowH, [0.5, 0.5, 0.5, 0.82]);
-      this.text(fontSz, col.name, y + padY, 'SPECTATORS', TEXT_COLORS[9]);
-      y += rowH;
-      const spectators = game.players
-        .filter((pl) => pl.teamID === PLAYER_TEAM_SPECTATOR)
-        .sort(compareScoreboardPlayers);
-      for (const p of spectators) drawPlayerRow(p);
+      drawSpectators();
     }
 
     const me = game.thisPlayer;

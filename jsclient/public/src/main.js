@@ -8,7 +8,7 @@ import { Menu2 } from './ui/menu2.js';
 import { WorldMapEditor } from './ui/worldMapEditor.js';
 import {
   WEAPONS, PRIMARY_WEAPON_IDS, MELEE_WEAPON_IDS,
-  GAME_TYPE_NAMES, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, GAME_PLAYING,
+  GAME_TYPE_NAMES, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, GAME_TYPE_SND, GAME_PLAYING,
   PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, PLAYER_TEAM_DISCONNECTED, CHAT_TEAM_ALL,
 } from './game/constants.js';
 import { expandCaretColors, normalizeBv2Text } from './ui/colorInput.js';
@@ -39,6 +39,8 @@ const igWeapons = document.getElementById('igWeapons');
 const igMelee = document.getElementById('igMelee');
 const igClientVersion = document.getElementById('igClientVersion');
 const btnAutoTeam = document.getElementById('btnAutoTeam');
+const btnBlueTeam = ingameMenu.querySelector('[data-team="0"]');
+const btnRedTeam = ingameMenu.querySelector('[data-team="1"]');
 const btnDisconnect = document.getElementById('btnDisconnect');
 const btnMainMenu = document.getElementById('btnMainMenu');
 const worldEditorRoot = document.getElementById('worldEditor');
@@ -1020,6 +1022,12 @@ function buildSandboxMapPicker() {
 }
 
 function updateIngameMenuLabels() {
+  const freeForAllMode = game.gameType === GAME_TYPE_DM || game.gameType === GAME_TYPE_SND;
+  btnBlueTeam.textContent = freeForAllMode ? 'Join game' : 'Join blue team';
+  btnBlueTeam.classList.toggle('ig-blue', !freeForAllMode);
+  btnRedTeam.hidden = freeForAllMode;
+  btnAutoTeam.hidden = freeForAllMode;
+
   if (game.exploreMode) {
     const gt = game.gameType;
     igGameTitle.textContent = GAME_TYPE_NAMES[gt] ?? 'Explore';
