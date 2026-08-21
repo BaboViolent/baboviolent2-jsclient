@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.7.0...v0.8.0) (2026-08-21)
+
+
+### Features
+
+* **debug:** capture local CTF packet and render traces ([742a9ca](https://github.com/BaboViolent/baboviolent2-jsclient/commit/742a9cad2e55357e852aca8e89c7d42f9db41d92))
+
 ## [0.7.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.6.0...v0.7.0) (2026-08-21)
 
 
