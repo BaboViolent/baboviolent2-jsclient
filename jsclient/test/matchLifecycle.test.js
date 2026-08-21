@@ -42,6 +42,14 @@ test('new-round reinitialization clears stale weapon and throwable state', async
   assert.match(game, /resetRoundTransientState\(\)[\s\S]*?player\.grenadeDelay = 0/);
 });
 
+test('map transition never sends stale-map movement after the server respawns the player', async () => {
+  const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
+  assert.match(
+    main,
+    /game\.onlineMode &&[\s\S]*?netClient\?\.connected &&[\s\S]*?!mapLoadInFlight &&[\s\S]*?netClient\.sendCoordFrame/,
+  );
+});
+
 test('server timer synchronization updates both Champion clocks', async () => {
   const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
   assert.match(

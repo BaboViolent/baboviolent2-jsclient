@@ -1273,6 +1273,7 @@ async function boot() {
     if (
       game.onlineMode &&
       netClient?.connected &&
+      !mapLoadInFlight &&
       game.ui.playing &&
       !game.ui.menuOpen &&
       game.thisPlayer.status === PLAYER_STATUS_ALIVE
