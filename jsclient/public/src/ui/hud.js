@@ -605,7 +605,7 @@ export class Hud {
     this.rect(0, 0, gl.canvas.width, panelH, [0, 0, 0, 0.75]);
     this.rect(0, panelH - 5 * scale, gl.canvas.width, 5 * scale, [0.7, 0.8, 1, 0.75]);
 
-    const log = ui.consoleEventsMode ? ui.consoleMessages : ui.chatMessages.map((m) => m.message);
+    const log = ui.consoleEventsMode ? ui.consoleMessages : ui.chatLogMessages;
     const lineH = 22 * scale;
     let y = panelH - 50 * scale;
     for (let i = log.length - 1; i >= 0 && y > 45 * scale; i--) {

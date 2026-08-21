@@ -496,8 +496,9 @@ function handleNetPacket(typeId, payload) {
       const pid = payload[0];
       if (netClient && pid === netClient.playerId) {
         bindLocalPlayerId(pid);
+        game.thisPlayer._announceServerJoin = true;
       } else {
-        getOrCreatePlayer(pid);
+        getOrCreatePlayer(pid)._announceServerJoin = true;
       }
       break;
     }
@@ -683,11 +684,12 @@ function handleNetPacket(typeId, payload) {
       const pid = payload[0];
       const p = game.players[pid];
       if (p && p !== game.thisPlayer) {
+        game.ui.addAnnouncement('\x03' + (p.name ?? 'Player') + ' \x08left the server');
         p.status = PLAYER_STATUS_DEAD;
         // Player slots are stable protocol IDs, so keep the object available for
         // reuse but remove it from team, FFA, spectator, and minimap rosters.
         p.teamID = PLAYER_TEAM_DISCONNECTED;
-        game.ui.log('\x03' + (p.name ?? 'Player') + ' disconnected');
+        p._announceServerJoin = false;
       }
       break;
     }
@@ -700,12 +702,11 @@ function handleNetPacket(typeId, payload) {
         : p.teamID;
       p.teamID = teamId;
       if (previousTeamId !== null && previousTeamId !== teamId) {
-        const teamName = teamId === PLAYER_TEAM_BLUE
-          ? '\x01Blue team'
-          : teamId === PLAYER_TEAM_RED
-            ? '\x04Red team'
-            : '\x09spectators';
-        game.ui.addEvent('\x09' + p.name + ' \x08joined the ' + teamName);
+        const announcement = teamId === PLAYER_TEAM_SPECTATOR
+          ? '\x09' + p.name + ' \x08went spectator'
+          : '\x09' + p.name + ' \x08joined the '
+            + (teamId === PLAYER_TEAM_BLUE ? '\x01Blue team' : '\x04Red team');
+        game.ui.addAnnouncement(announcement);
       }
       if (p === game.thisPlayer) {
         pendingTeamId = null;
@@ -722,6 +723,10 @@ function handleNetPacket(typeId, payload) {
       const pid = payload[0];
       const p = getOrCreatePlayer(pid);
       p.name = readFixedStr(payload, 1, 32) || p.name;
+      if (p._announceServerJoin) {
+        game.ui.addAnnouncement('\x09' + p.name + ' \x08joined the server');
+        p._announceServerJoin = false;
+      }
       break;
     }
     case NET.SVCL_SERVER_DISCONNECT:

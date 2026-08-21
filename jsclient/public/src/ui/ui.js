@@ -20,6 +20,7 @@ export class GameUI {
   constructor(game) {
     this.game = game;
     this.chatMessages = [];
+    this.chatLogMessages = [];
     this.eventMessages = [];
     this.consoleMessages = [];
     this.consoleActive = false;
@@ -41,14 +42,22 @@ export class GameUI {
 
   addChat(text, team = false) {
     const prefix = team ? '\x03[team] ' : '';
-    this.chatMessages.push(new TimedMessage(prefix + text, 12));
+    const message = prefix + text;
+    this.chatMessages.push(new TimedMessage(message, 12));
     while (this.chatMessages.length > MAX_CHAT) this.chatMessages.shift();
+    this.chatLogMessages.push(message);
+    while (this.chatLogMessages.length > MAX_CONSOLE) this.chatLogMessages.shift();
     this.log('\x07' + (team ? 'team' : 'say') + ': ' + text);
   }
 
   addEvent(text) {
     this.eventMessages.push(new TimedMessage(text, EVENT_DURATION));
     while (this.eventMessages.length > MAX_EVENTS) this.eventMessages.shift();
+  }
+
+  addAnnouncement(text) {
+    this.addEvent(text);
+    this.log(text);
   }
 
   /** Player.cpp kill banner — weapon name with \x8 separator bytes. */
