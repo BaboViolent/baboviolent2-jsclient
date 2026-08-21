@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.26...v0.6.0) (2026-08-21)
+
+
+### Features
+
+* **client:** show release version in Escape menu ([3afe633](https://github.com/BaboViolent/baboviolent2-jsclient/commit/3afe633871bc65c0448da46ae9645a01e6e4051d))
+
+
+### Bug Fixes
+
+* **client:** announce suicide kills ([e54659e](https://github.com/BaboViolent/baboviolent2-jsclient/commit/e54659e9fd418866422f027b1847d55c445cf2bf))
+
 ## [0.5.26](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.25...v0.5.26) (2026-08-21)
 
 
