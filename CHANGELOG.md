@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.0...v0.9.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* **client:** preserve authoritative CTF and projectiles ([f98df16](https://github.com/BaboViolent/baboviolent2-jsclient/commit/f98df1612ca1e6566ff034d16947e91398df6316))
+* **network:** resynchronize movement after match reset ([f61d88c](https://github.com/BaboViolent/baboviolent2-jsclient/commit/f61d88c92882509423ff45e0d1b9bfab307fb1f4))
+
 ## [0.9.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.8.0...v0.9.0) (2026-08-21)
 
 
