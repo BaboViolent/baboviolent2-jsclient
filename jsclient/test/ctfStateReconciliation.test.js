@@ -22,3 +22,11 @@ test('versioned flag packets reject stale snapshots that would teleport a droppe
   assert.match(main, /payload\.length >= 17/);
   assert.match(main, /payload\.length >= 8/);
 });
+
+test('periodic server info cannot reinitialize an unchanged CTF mode', async () => {
+  const game = await readFile(new URL('../public/src/game/game.js', import.meta.url), 'utf8');
+  const setter = game.slice(game.indexOf('setGameType(type)'), game.indexOf('spawnPlayer(player)'));
+
+  assert.match(setter, /if \(this\.gameType === type\) return/);
+  assert.match(setter, /this\.initGameMode\(\)/);
+});

@@ -255,6 +255,7 @@ export class Game {
   }
 
   setGameType(type) {
+    if (this.gameType === type) return;
     this.gameType = type;
     if (this.map) this.initGameMode();
   }
@@ -998,7 +999,13 @@ export class Game {
     // GameSpawn.cpp:497 — client copies are remoteEntity; thrower simulates fuse/burn.
     // Once online, every projectile copy follows Rust authority, including the
     // thrower's own copy. This prevents duplicate local fuse/burn reports.
-    const authority = !this.onlineMode;
+    // This method is only entered for a server packet. During initial map load
+    // packets may flush before startOnlinePlay marks the session online, but
+    // they are still server-owned and must never run local collision/expiry.
+    const authority = false;
+    if (sp.projectileType === PROJECTILE_DROPED_WEAPON) {
+      void this.weaponDropModel(sp.weaponID);
+    }
     const projectile = new Projectile(
       sp.projectileType,
       sp.position,

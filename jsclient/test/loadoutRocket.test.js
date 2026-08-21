@@ -4,7 +4,7 @@ import { Player } from '../public/src/game/player.js';
 import { Weapon } from '../public/src/game/weapon.js';
 import { Projectile } from '../public/src/game/projectile.js';
 import { EFFECTS, ParticleSystem, projectileTrailColor } from '../public/src/render/particles.js';
-import { WEAPONS, WEAPON_BAZOOKA, WEAPON_SHOTGUN, WEAPON_FLAME_THROWER, PROJECTILE_ROCKET } from '../public/src/game/constants.js';
+import { WEAPONS, WEAPON_BAZOOKA, WEAPON_SHOTGUN, WEAPON_FLAME_THROWER, PROJECTILE_ROCKET, PROJECTILE_FLAME } from '../public/src/game/constants.js';
 
 test('pending loadout does not replace the current living weapon', () => {
   const player = new Player(0);
@@ -28,6 +28,14 @@ test('network rockets face their velocity and never run local collision', () => 
   assert.equal(result, null);
   assert.deepEqual(rocket.currentCF.position, before);
   assert.equal(rocket.dead, false);
+});
+
+test('network flames wait for the authoritative delete packet', () => {
+  const flame = new Projectile(PROJECTILE_FLAME, [2, 2, 0], [0, 0, 0], 0, [0, 0, 0], { remoteEntity: true });
+  flame.duration = 0.001;
+  flame.update(1, null, [], null);
+  assert.equal(flame.dead, false);
+  assert.equal(flame.duration, 0.001);
 });
 
 test('native base flamethrower and photon contracts stay intact', () => {

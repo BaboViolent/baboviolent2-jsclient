@@ -124,6 +124,14 @@ export class Projectile {
     this.lastCF.position = [...cf.position];
     this.timeSinceThrown += delay;
 
+    // Every projectile received from the dedicated server is render-only.
+    // This must precede flame handling: otherwise remote flames locally expire
+    // at ten seconds just before the authoritative delete packet arrives.
+    if (this.remoteEntity) {
+      this.rotation += this.rotateVel * delay;
+      return null;
+    }
+
     if (this.type === PROJECTILE_FLAME) {
       return this.updateFlame(delay, map, players, particles);
     }
@@ -131,14 +139,6 @@ export class Projectile {
     // Online copies are render-only. Rust owns their integration and every
     // collision/explosion; locally ray-testing between coordinate frames can
     // otherwise produce false floor impacts that never occurred on the server.
-    if (this.remoteEntity) {
-      this.rotation += this.rotateVel * delay;
-      if (this.type === PROJECTILE_LIFE_PACK || this.type === PROJECTILE_DROPED_GRENADE) {
-        return this.checkPickup(players);
-      }
-      return null;
-    }
-
     this.rotation += this.rotateVel * delay;
     let speed = Math.hypot(cf.vel[0], cf.vel[1], cf.vel[2]);
 
