@@ -1,4 +1,6 @@
 FROM node:24-bookworm-slim
+ARG CLIENT_VERSION=development
+ENV CLIENT_VERSION=$CLIENT_VERSION
 WORKDIR /app
 COPY jsclient/package.json ./jsclient/package.json
 COPY jsclient/server.js jsclient/serverList.js ./jsclient/

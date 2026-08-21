@@ -11,6 +11,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_ROOT = path.join(HERE, 'public');
 const CONTENT_ROOT = path.resolve(HERE, '..', 'Content');
 const PORT = Number(process.env.PORT) || 8080;
+const CLIENT_VERSION = process.env.CLIENT_VERSION || 'development';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -78,6 +79,11 @@ http
 
     if (url === '/api/maps') return listMaps(res);
     if (url === '/api/servers') return void listServers(res);
+    if (url === '/api/version') {
+      return send(res, 200, JSON.stringify({ version: CLIENT_VERSION }), {
+        'Content-Type': MIME['.json'],
+      });
+    }
 
     if (url.startsWith('/content/')) {
       const target = safeJoin(CONTENT_ROOT, url.slice('/content'.length));

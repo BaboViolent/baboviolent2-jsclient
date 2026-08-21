@@ -36,6 +36,7 @@ const igGameSubtitle = document.getElementById('igGameSubtitle');
 const igMapInfoCanvas = document.getElementById('igMapInfoCanvas');
 const igWeapons = document.getElementById('igWeapons');
 const igMelee = document.getElementById('igMelee');
+const igClientVersion = document.getElementById('igClientVersion');
 const btnAutoTeam = document.getElementById('btnAutoTeam');
 const btnDisconnect = document.getElementById('btnDisconnect');
 const btnMainMenu = document.getElementById('btnMainMenu');
@@ -45,6 +46,11 @@ const sandboxMapPicker = document.getElementById('sandboxMapPicker');
 const sandboxMapList = document.getElementById('sandboxMapList');
 const sandboxEntry = new URLSearchParams(location.search).get('mode') === 'sandbox';
 if (sandboxEntry) document.getElementById('loading').hidden = true;
+
+fetch('/api/version')
+  .then((response) => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
+  .then(({ version }) => { igClientVersion.textContent = `Client version: ${version || 'unknown'}`; })
+  .catch(() => { igClientVersion.textContent = 'Client version: unknown'; });
 
 const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
 if (!gl) {

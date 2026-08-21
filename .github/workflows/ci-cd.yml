@@ -34,6 +34,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: zot.standouthost.com/standouthost/baboviolent2-jsclient:${{ github.ref_name }}
+          build-args: |
+            CLIENT_VERSION=${{ github.ref_name }}
       - name: Update Argo CD image tag
         env:
           RELEASE_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
