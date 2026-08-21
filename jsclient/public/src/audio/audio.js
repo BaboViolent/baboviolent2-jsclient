@@ -18,6 +18,7 @@ export class Audio3D {
     this.buffers = new Map();
     this.listener = [0, 0, 0];
     this.masterGain = null;
+    this.masterVolume = 0.6;
     /** @type {Map<string, { file: string, volume: number, gen: number, source?: AudioBufferSourceNode, gain?: GainNode }>} */
     this.loops = new Map();
     this._loopGen = 0;
@@ -28,7 +29,7 @@ export class Audio3D {
     if (!this.ctx) {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.6;
+      this.masterGain.gain.value = this.masterVolume;
       this.masterGain.connect(this.ctx.destination);
       for (const loop of this.loops.values()) {
         if (!loop.source) void this.startLoop(loop.file, loop.volume, loop);
@@ -54,6 +55,7 @@ export class Audio3D {
   }
 
   setMasterVolume(v) {
+    this.masterVolume = v;
     if (this.masterGain) this.masterGain.gain.value = v;
   }
 

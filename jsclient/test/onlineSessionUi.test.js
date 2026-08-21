@@ -19,7 +19,8 @@ test('authoritative team changes and flag drops are announced in the event feed'
   const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
   assert.match(main, /game\.ui\.addAnnouncement\(announcement\)/);
   assert.match(main, /p\.name \+ ' \\x08went spectator'/);
-  assert.match(main, /p\.name \+ ' \\x08joined the server'/);
+  assert.match(main, /p\.name = st\.name;[\s\S]*p\.name \+ ' \\x08joined the server'/);
+  assert.match(main, /nameOffset = \/\^\(\?:\\d\{1,3\}\\\.\)\{3\}\\d\{1,3\}\$\//);
   assert.match(main, /p\.name \?\? 'Player'\) \+ ' \\x08left the server'/);
   assert.match(main, /carrier\.name \+ ' \\x08dropped the ' \+ \(flagId === 0 \? 'blue' : 'red'\) \+ ' flag'/);
   assert.match(main, /carrier === game\.thisPlayer[\s\S]*carrier\.status === PLAYER_STATUS_ALIVE[\s\S]*game\.onPlayerDeath\(carrier/);
