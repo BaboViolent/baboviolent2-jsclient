@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.3...v0.9.4) (2026-08-21)
+
+
+### Bug Fixes
+
+* **client:** apply profile name and saved volume ([2360ab6](https://github.com/BaboViolent/baboviolent2-jsclient/commit/2360ab6f74092036d0eb63649e2711a5a612a7ce))
+
 ## [0.9.3](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.2...v0.9.3) (2026-08-21)
 
 
