@@ -942,7 +942,7 @@ export class Game {
     }
     if (victim.life <= 1e-6 && victim.status === PLAYER_STATUS_ALIVE) {
       const attacker = this.resolvePlayer(hit.fromID);
-      if (this.onlineMode && !this.exploreMode && attacker && attacker !== victim) {
+      if (this.onlineMode && !this.exploreMode && attacker) {
         this.ui.addKill(attacker, victim, hit.weaponID);
       }
       this.onPlayerDeath(victim, attacker ?? { playerID: hit.fromID }, hit.weaponID);

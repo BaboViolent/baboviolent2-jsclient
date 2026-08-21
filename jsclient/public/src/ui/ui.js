@@ -53,7 +53,7 @@ export class GameUI {
 
   /** Player.cpp kill banner — weapon name with \x8 separator bytes. */
   addKill(killer, victim, weaponID) {
-    if (!killer || killer === victim) return;
+    if (!killer || !victim) return;
     const weapon = WEAPONS[weaponID]?.name ?? '???';
     const teamMode = this.game.gameType === GAME_TYPE_TDM || this.game.gameType === GAME_TYPE_CTF;
     const kTeam = teamMode ? (killer.teamID === 0 ? '{' : killer.teamID === 1 ? '}' : '') : '';

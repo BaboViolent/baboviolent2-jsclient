@@ -96,3 +96,11 @@ test('kill feed uses neutral names in FFA and team colors in CTF', () => {
   assert.equal(ui.eventMessages.at(-1).message.startsWith('{Killer'), true);
   assert.equal(ui.eventMessages.at(-1).message.includes('}Victim'), true);
 });
+
+test('kill feed announces a suicide with the player on both sides', () => {
+  const game = onlineGame();
+  const ui = new GameUI(game);
+  const player = { name: 'Babo', teamID: 0 };
+  ui.addKill(player, player, 5);
+  assert.match(ui.eventMessages.at(-1).message, /Babo.*Bazooka.*Babo/);
+});
