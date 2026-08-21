@@ -276,13 +276,33 @@ function readPayloadF32(payload, offset) {
   return new DataView(payload.buffer, payload.byteOffset + offset, 4).getFloat32(0, true);
 }
 
+function acceptFlagRevision(ctf, flagId, revision) {
+  const previous = ctf.flagRevision?.[flagId] ?? null;
+  if (revision == null) return previous == null;
+  if (previous != null) {
+    const delta = (revision - previous) >>> 0;
+    if (delta !== 0 && delta >= 0x80000000) return false;
+  }
+  if (!ctf.flagRevision) ctf.flagRevision = [null, null];
+  ctf.flagRevision[flagId] = revision;
+  return true;
+}
+
 function applyFlagEnum(payload) {
   if (payload.length < 26) return;
   const ctf = game.ctf;
-  ctf.flagState[0] = payload[0] >= 128 ? payload[0] - 256 : payload[0];
-  ctf.flagState[1] = payload[1] >= 128 ? payload[1] - 256 : payload[1];
-  ctf.flagPos[0] = [readPayloadF32(payload, 2), readPayloadF32(payload, 6), readPayloadF32(payload, 10)];
-  ctf.flagPos[1] = [readPayloadF32(payload, 14), readPayloadF32(payload, 18), readPayloadF32(payload, 22)];
+  const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+  const revisions = payload.length >= 34
+    ? [view.getUint32(26, true), view.getUint32(30, true)]
+    : [null, null];
+  if (acceptFlagRevision(ctf, 0, revisions[0])) {
+    ctf.flagState[0] = payload[0] >= 128 ? payload[0] - 256 : payload[0];
+    ctf.flagPos[0] = [readPayloadF32(payload, 2), readPayloadF32(payload, 6), readPayloadF32(payload, 10)];
+  }
+  if (acceptFlagRevision(ctf, 1, revisions[1])) {
+    ctf.flagState[1] = payload[1] >= 128 ? payload[1] - 256 : payload[1];
+    ctf.flagPos[1] = [readPayloadF32(payload, 14), readPayloadF32(payload, 18), readPayloadF32(payload, 22)];
+  }
 }
 
 function applyChangeFlagState(payload) {
@@ -293,6 +313,10 @@ function applyChangeFlagState(payload) {
   const action = payload.length >= 4 ? payload[3] : 0;
   if (flagId > 1) return;
   const ctf = game.ctf;
+  const revision = payload.length >= 8
+    ? new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getUint32(4, true)
+    : null;
+  if (!acceptFlagRevision(ctf, flagId, revision)) return;
   const oldState = ctf.flagState[flagId];
   const p = getOrCreatePlayer(playerId);
   const flagTeam = flagId === 0 ? PLAYER_TEAM_BLUE : PLAYER_TEAM_RED;
@@ -338,6 +362,10 @@ function applyDropFlag(payload) {
   if (payload.length < 13) return;
   const flagId = payload[0];
   if (flagId > 1) return;
+  const revision = payload.length >= 17
+    ? new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getUint32(13, true)
+    : null;
+  if (!acceptFlagRevision(game.ctf, flagId, revision)) return;
   const carrierId = game.ctf.flagState[flagId];
   if (carrierId >= 0) {
     const carrier = getOrCreatePlayer(carrierId);

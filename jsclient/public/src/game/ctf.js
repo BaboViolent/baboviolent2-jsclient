@@ -12,6 +12,7 @@ export class CTFState {
     /** @type {[number, number]} -2 pod, -1 dropped, >=0 carrier playerID */
     this.flagState = [FLAG_AT_POD, FLAG_AT_POD];
     this.flagPos = [[0, 0, 0.25], [0, 0, 0.25]];
+    this.flagRevision = [null, null];
     // Server info can select CTF before the asynchronous map load completes.
     // Keep updates safe until reset() replaces these with the authored pods.
     this._pod = [[0, 0, 0.25], [0, 0, 0.25]];
@@ -29,6 +30,7 @@ export class CTFState {
     ];
     this.flagPos[0][2] = 0.25;
     this.flagPos[1][2] = 0.25;
+    this.flagRevision = [null, null];
     this.blueWin = 0;
     this.redWin = 0;
     this.flagAnim = 0;

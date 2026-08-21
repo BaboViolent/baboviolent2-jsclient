@@ -13,3 +13,12 @@ test('duplicate CTF transitions still reconcile authoritative pod position', asy
   assert.match(handler, /ctf\.flagState\[flagId\] = newState/);
   assert.match(handler, /newState === FLAG_AT_POD && game\.map\?\.flagPod/);
 });
+
+test('versioned flag packets reject stale snapshots that would teleport a dropped flag', async () => {
+  const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /function acceptFlagRevision/);
+  assert.match(main, /delta !== 0 && delta >= 0x80000000/);
+  assert.match(main, /payload\.length >= 34/);
+  assert.match(main, /payload\.length >= 17/);
+  assert.match(main, /payload\.length >= 8/);
+});
