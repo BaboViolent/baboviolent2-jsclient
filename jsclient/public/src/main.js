@@ -17,6 +17,7 @@ import { Bv2Client, NET_PLAYER_STATUS_ALIVE, NET_PLAYER_STATUS_DEAD } from './ne
 import { NET } from './net/protocol.js';
 import { parsePlayerEnumState, parsePlayerSpawn, parseCoordFrame, parsePlayerShoot, parsePlayerHit, parseExplosion, parseChat, parseSyncTimer, parsePlayerPing, parsePlayerProjectile, parseProjectileCoordFrame, parseVoteRequest, parsePlayerChangeName, parsePlayerUpdateSkin, readFixedStr } from './net/packet.js';
 import { FLAG_AT_POD, FLAG_DROPPED } from './game/ctf.js';
+import { debugLog } from './debugLog.js';
 import { decalsForPlayer, normalizeDecals } from './game/skin.js';
 import { WEAPON_FLAME_THROWER, WEAPON_GRENADE, SV_WIN_LIMIT, SV_TIME_TO_SPAWN, PLAYER_Z } from './game/constants.js';
 import { Player } from './game/player.js';
@@ -288,15 +289,32 @@ function readPayloadF32(payload, offset) {
   return new DataView(payload.buffer, payload.byteOffset + offset, 4).getFloat32(0, true);
 }
 
-function acceptFlagRevision(ctf, flagId, revision) {
+function flagDebugState(ctf, flagId) {
+  return {
+    flagId,
+    state: ctf.flagState?.[flagId],
+    position: ctf.flagPos?.[flagId]?.map((value) => Math.round(value * 10000) / 10000),
+    revision: ctf.flagRevision?.[flagId] ?? null,
+  };
+}
+
+function acceptFlagRevision(ctf, flagId, revision, source) {
   const previous = ctf.flagRevision?.[flagId] ?? null;
-  if (revision == null) return previous == null;
+  if (revision == null) {
+    const accepted = previous == null;
+    debugLog('flag-revision', { source, flagId, previous, revision, accepted, reason: accepted ? 'legacy' : 'versioned-state-present' });
+    return accepted;
+  }
   if (previous != null) {
     const delta = (revision - previous) >>> 0;
-    if (delta !== 0 && delta >= 0x80000000) return false;
+    if (delta !== 0 && delta >= 0x80000000) {
+      debugLog('flag-revision', { source, flagId, previous, revision, delta, accepted: false, reason: 'stale' });
+      return false;
+    }
   }
   if (!ctf.flagRevision) ctf.flagRevision = [null, null];
   ctf.flagRevision[flagId] = revision;
+  debugLog('flag-revision', { source, flagId, previous, revision, accepted: true });
   return true;
 }
 
@@ -307,14 +325,25 @@ function applyFlagEnum(payload) {
   const revisions = payload.length >= 34
     ? [view.getUint32(26, true), view.getUint32(30, true)]
     : [null, null];
-  if (acceptFlagRevision(ctf, 0, revisions[0])) {
+  debugLog('flag-packet-enum', {
+    bytes: payload.length,
+    states: [payload[0] >= 128 ? payload[0] - 256 : payload[0], payload[1] >= 128 ? payload[1] - 256 : payload[1]],
+    positions: [
+      [readPayloadF32(payload, 2), readPayloadF32(payload, 6), readPayloadF32(payload, 10)],
+      [readPayloadF32(payload, 14), readPayloadF32(payload, 18), readPayloadF32(payload, 22)],
+    ],
+    revisions,
+    before: [flagDebugState(ctf, 0), flagDebugState(ctf, 1)],
+  });
+  if (acceptFlagRevision(ctf, 0, revisions[0], 'enum')) {
     ctf.flagState[0] = payload[0] >= 128 ? payload[0] - 256 : payload[0];
     ctf.flagPos[0] = [readPayloadF32(payload, 2), readPayloadF32(payload, 6), readPayloadF32(payload, 10)];
   }
-  if (acceptFlagRevision(ctf, 1, revisions[1])) {
+  if (acceptFlagRevision(ctf, 1, revisions[1], 'enum')) {
     ctf.flagState[1] = payload[1] >= 128 ? payload[1] - 256 : payload[1];
     ctf.flagPos[1] = [readPayloadF32(payload, 14), readPayloadF32(payload, 18), readPayloadF32(payload, 22)];
   }
+  debugLog('flag-applied-enum', { after: [flagDebugState(ctf, 0), flagDebugState(ctf, 1)] });
 }
 
 function applyChangeFlagState(payload) {
@@ -328,7 +357,10 @@ function applyChangeFlagState(payload) {
   const revision = payload.length >= 8
     ? new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getUint32(4, true)
     : null;
-  if (!acceptFlagRevision(ctf, flagId, revision)) return;
+  debugLog('flag-packet-change', {
+    flagId, newState, playerId, action, revision, before: flagDebugState(ctf, flagId),
+  });
+  if (!acceptFlagRevision(ctf, flagId, revision, 'change')) return;
   const oldState = ctf.flagState[flagId];
   const p = getOrCreatePlayer(playerId);
   const flagTeam = flagId === 0 ? PLAYER_TEAM_BLUE : PLAYER_TEAM_RED;
@@ -368,6 +400,7 @@ function applyChangeFlagState(payload) {
     ctf.flagPos[flagId] = [...game.map.flagPod[flagId]];
     ctf.flagPos[flagId][2] = 0.25;
   }
+  debugLog('flag-applied-change', { action, playerId, after: flagDebugState(ctf, flagId) });
 }
 
 function applyDropFlag(payload) {
@@ -377,7 +410,15 @@ function applyDropFlag(payload) {
   const revision = payload.length >= 17
     ? new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getUint32(13, true)
     : null;
-  if (!acceptFlagRevision(game.ctf, flagId, revision)) return;
+  const packetPosition = [
+    readPayloadF32(payload, 1),
+    readPayloadF32(payload, 5),
+    readPayloadF32(payload, 9),
+  ];
+  debugLog('flag-packet-drop', {
+    flagId, revision, position: packetPosition, before: flagDebugState(game.ctf, flagId),
+  });
+  if (!acceptFlagRevision(game.ctf, flagId, revision, 'drop')) return;
   const carrierId = game.ctf.flagState[flagId];
   if (carrierId >= 0) {
     const carrier = getOrCreatePlayer(carrierId);
@@ -395,11 +436,8 @@ function applyDropFlag(payload) {
     }
   }
   game.ctf.flagState[flagId] = FLAG_DROPPED;
-  game.ctf.flagPos[flagId] = [
-    readPayloadF32(payload, 1),
-    readPayloadF32(payload, 5),
-    readPayloadF32(payload, 9),
-  ];
+  game.ctf.flagPos[flagId] = packetPosition;
+  debugLog('flag-applied-drop', { after: flagDebugState(game.ctf, flagId) });
 }
 
 function applyFlameStick(payload) {
@@ -726,6 +764,7 @@ async function startOnlinePlay(host, port, password, serverName = '') {
   game.audio.stopMusic();
   const target = port == null ? host : formatHostPort(host, port);
   const wsUrl = hostedJoinTargetToWsUrl(target);
+  debugLog('connection-start', { target, wsUrl, serverName });
   connectedServerLabel = serverName ? `${serverName} (${target})` : target;
   hud.textContent = `connecting ${wsUrl}...`;
   game.ui.log('\x09Connecting to ' + wsUrl);
@@ -759,6 +798,7 @@ async function startOnlinePlay(host, port, password, serverName = '') {
         }
       },
       onDisconnect: () => {
+        debugLog('connection-disconnect', { target, onlineMode: game.onlineMode });
         if (game.onlineMode) {
           game.ui.log('\x04Disconnected from server');
           disconnectOnline();

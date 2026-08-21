@@ -5,6 +5,7 @@ import { buildSphere } from './sphere.js';
 import { ModelRenderer } from './modelRenderer.js';
 import { Hud } from '../ui/hud.js';
 import { toMat4 } from '../core/mat3.js';
+import { debugLog, debugLoggingEnabled } from '../debugLog.js';
 import { recolorSkin, DEFAULT_DECALS, normalizeDecals } from '../game/skin.js';
 import { WEATHER_FOG_PARAMS, PLAYER_RADIUS, WEAPON_MODEL_SCALE, DROP_MODEL_SCALE, WEAPON_KNIVES, WEAPON_SHIELD, PROJECTILE_FLAME, PROJECTILE_DROPED_WEAPON, PROJECTILE_DROPED_GRENADE, PROJECTILE_LIFE_PACK, GAME_TYPE_CTF, PLAYER_STATUS_ALIVE } from '../game/constants.js';
 
@@ -127,6 +128,8 @@ export class Renderer {
     /** Free camera target used by spectators instead of the player body (Game.cpp:587). */
     this.cameraFocus = null;
     this.renderScale = 1;
+    this.flagDebugLastAt = 0;
+    this.flagDebugLastSignature = '';
   }
 
   createVAOFromData(data) {
@@ -603,14 +606,16 @@ export class Renderer {
       { built: game.flagModels.blueFlag, pos: game.ctf.flagPos[0], angle: 0 },
       { built: game.flagModels.redFlag, pos: game.ctf.flagPos[1], angle: 0 },
     ];
+    const renderedFlags = [];
     for (let i = 0; i < flags.length; i++) {
       const f = flags[i];
       if (!f.built) continue;
       const carrier = game.ctf.flagState[i];
       const p = [...f.pos];
       let angle = 0;
+      let player = null;
       if (carrier >= 0) {
-        const player = game.players.find((pl) => pl.playerID === carrier);
+        player = game.players.find((pl) => pl.playerID === carrier) ?? null;
         if (player) {
           // Player.cpp:645 + MapRender.cpp:780 — the native client keeps the
           // DKO upright at the carrier and rotates it with angle - 90. Laying
@@ -632,6 +637,28 @@ export class Renderer {
           p[0], p[1], p[2] ?? 0.25, 1,
         ]);
       this.models.draw(f.built, modelMatrix, anim);
+      renderedFlags.push({
+        flagId: i,
+        state: carrier,
+        revision: game.ctf.flagRevision?.[i] ?? null,
+        authoritativePosition: f.pos.map((value) => Math.round(value * 10000) / 10000),
+        renderPosition: p.map((value) => Math.round(value * 10000) / 10000),
+        carrierFound: carrier < 0 || player != null,
+        carrierStatus: player?.status ?? null,
+        carrierPosition: player?.currentCF?.position?.map((value) => Math.round(value * 10000) / 10000) ?? null,
+        carrierAngle: player?.currentCF?.angle ?? null,
+        renderAngleRadians: Math.round(angle * 10000) / 10000,
+      });
+    }
+    if (debugLoggingEnabled) {
+      const now = performance.now();
+      const signature = JSON.stringify(renderedFlags);
+      const elapsed = now - this.flagDebugLastAt;
+      if (elapsed >= 1000 || (elapsed >= 100 && signature !== this.flagDebugLastSignature)) {
+        debugLog('flag-render', { flags: renderedFlags });
+        this.flagDebugLastSignature = signature;
+        this.flagDebugLastAt = now;
+      }
     }
     gl.bindVertexArray(null);
   }

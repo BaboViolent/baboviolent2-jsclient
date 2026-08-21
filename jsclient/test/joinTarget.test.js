@@ -20,3 +20,9 @@ test('hosted joins always use hidden public WSS transport', () => {
   assert.equal(hostedJoinTargetToWsUrl('ws://nc-ctf.baboviolent.net:9000/custom?x=1'), 'wss://nc-ctf.baboviolent.net/ws');
   assert.equal(hostedJoinHostname('wss://nc-ctf.baboviolent.net:8080/ws'), 'nc-ctf.baboviolent.net');
 });
+
+test('loopback joins retain local WebSocket ports for diagnostics', () => {
+  assert.equal(hostedJoinTargetToWsUrl('127.0.0.1:8080'), 'ws://127.0.0.1:8080/ws');
+  assert.equal(hostedJoinTargetToWsUrl('localhost:9000'), 'ws://localhost:9000/ws');
+  assert.equal(hostedJoinTargetToWsUrl('[::1]:8080'), 'ws://[::1]:8080/ws');
+});

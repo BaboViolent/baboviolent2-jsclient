@@ -23,6 +23,14 @@ export function joinTargetToWsUrl(raw, defaultPort = 8080, pageProtocol = 'http:
 }
 
 export function hostedJoinTargetToWsUrl(raw) {
+  const local = new URL(joinTargetToWsUrl(raw, 8080, 'http:'));
+  if (local.hostname === 'localhost' || local.hostname === '127.0.0.1' || local.hostname === '[::1]') {
+    local.protocol = 'ws:';
+    local.pathname = '/ws';
+    local.search = '';
+    local.hash = '';
+    return local.toString();
+  }
   const url = new URL(joinTargetToWsUrl(raw, 443, 'https:'));
   url.protocol = 'wss:';
   url.port = '';

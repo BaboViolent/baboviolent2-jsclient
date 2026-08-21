@@ -12,6 +12,8 @@ const PUBLIC_ROOT = path.join(HERE, 'public');
 const CONTENT_ROOT = path.resolve(HERE, '..', 'Content');
 const PORT = Number(process.env.PORT) || 8080;
 const CLIENT_VERSION = process.env.CLIENT_VERSION || 'development';
+const DEBUG_LOG_PATH = process.env.JSCLIENT_DEBUG_LOG || '';
+const MAX_DEBUG_BODY = 256 * 1024;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -72,10 +74,37 @@ async function listServers(res) {
   send(res, 200, JSON.stringify(servers), { 'Content-Type': MIME['.json'] });
 }
 
+function isLoopback(address = '') {
+  return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
+}
+
+async function receiveDebugLog(req, res) {
+  if (!DEBUG_LOG_PATH || !isLoopback(req.socket.remoteAddress)) return send(res, 404, 'Not found');
+  let size = 0;
+  const chunks = [];
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > MAX_DEBUG_BODY) return send(res, 413, 'Debug payload too large');
+    chunks.push(chunk);
+  }
+  try {
+    const parsed = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+    if (!Array.isArray(parsed)) throw new Error('expected an array');
+    const receivedAt = new Date().toISOString();
+    const lines = parsed.slice(0, 128).map((entry) => JSON.stringify({ receivedAt, ...entry })).join('\n');
+    if (lines) await fsp.appendFile(DEBUG_LOG_PATH, `${lines}\n`, 'utf8');
+    return send(res, 204, '');
+  } catch (error) {
+    return send(res, 400, `Invalid debug payload: ${error.message}`);
+  }
+}
+
 http
   .createServer(async (req, res) => {
-    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
     const url = req.url.split('?')[0];
+
+    if (url === '/api/debug-log' && req.method === 'POST') return receiveDebugLog(req, res);
+    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
 
     if (url === '/api/maps') return listMaps(res);
     if (url === '/api/servers') return void listServers(res);
@@ -98,4 +127,5 @@ http
   .listen(PORT, () => {
     console.log(`BV2 js client  ->  http://localhost:${PORT}`);
     console.log(`content root   ->  ${CONTENT_ROOT}`);
+    if (DEBUG_LOG_PATH) console.log(`client debug   ->  ${DEBUG_LOG_PATH} (?debug=1)`);
   });
