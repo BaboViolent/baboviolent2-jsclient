@@ -13,5 +13,7 @@ test('KOTH is a fifth team game type with authoritative hill state', async () =>
   assert.match(protocol, /SVCL_KOTH_STATE: 136/);
   assert.match(main, /case NET\.SVCL_KOTH_STATE/);
   assert.match(hud, /'HILL CONTESTED'/);
+  assert.match(hud, /game\.koth\.blueProgress\.toFixed\(1\)/);
+  assert.match(hud, /game\.koth\.redProgress\.toFixed\(1\)/);
   assert.match(hud, /const isTeamScore = isTDM \|\| isKOTH/);
 });

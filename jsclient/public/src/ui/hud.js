@@ -545,7 +545,10 @@ export class Hud {
       const controller = game.koth?.controller ?? -1;
       const progress = controller === 0 ? game.koth.blueProgress : controller === 1 ? game.koth.redProgress : 0;
       const status = controller === 2 ? 'HILL CONTESTED' : controller === 0 ? 'BLUE HOLDS HILL' : controller === 1 ? 'RED HOLDS HILL' : 'HILL OPEN';
-      this.text(20 * u, x, rowY, `${status} ${progress.toFixed(1)}/${game.koth?.goal ?? 15}s`, TEXT_COLORS[9]);
+      const detail = controller === 2
+        ? ` B ${game.koth.blueProgress.toFixed(1)}s  R ${game.koth.redProgress.toFixed(1)}s`
+        : ` ${progress.toFixed(1)}/${game.koth?.goal ?? 15}s`;
+      this.text(20 * u, x, rowY, `${status}${detail}`, TEXT_COLORS[9]);
     }
 
   }
