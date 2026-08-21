@@ -15,7 +15,7 @@ export const NET_PLAYER_STATUS_DEAD = 1;
 export const NET_PLAYER_STATUS_LOADING = 2;
 
 export class Bv2Client {
-  /** @param {{ url?: string, name?: string, password?: string, onPacket?: (typeId: number, payload: Uint8Array) => void, onConnect?: () => void, onDisconnect?: () => void }} opts */
+  /** @param {{ url?: string, name?: string, password?: string, onPacket?: (typeId: number, payload: Uint8Array) => void, onConnect?: () => void, onDisconnect?: () => void, onServerVersion?: (version: string) => void }} opts */
   constructor(opts = {}) {
     this.url = opts.url ?? `ws://${location.hostname}:8080/ws`;
     this.name = opts.name ?? 'Babo';
@@ -23,12 +23,14 @@ export class Bv2Client {
     this.onPacket = opts.onPacket ?? (() => {});
     this.onConnect = opts.onConnect ?? (() => {});
     this.onDisconnect = opts.onDisconnect ?? (() => {});
+    this.onServerVersion = opts.onServerVersion ?? (() => {});
 
     /** @type {WebSocket | null} */
     this.ws = null;
     this.playerId = -1;
     this.babonetId = 0;
     this.connected = false;
+    this.serverVersion = null;
     this._rx = new Uint8Array(0);
     this._frameId = 0;
     this._profileTimers = { name: null, skin: null };
@@ -109,6 +111,12 @@ export class Bv2Client {
         if (ver !== GAME_VERSION_SV) {
           console.warn('server version mismatch', ver, 'expected', GAME_VERSION_SV);
         }
+        const releaseBytes = payload.subarray(4);
+        const end = releaseBytes.indexOf(0);
+        this.serverVersion = releaseBytes.length
+          ? new TextDecoder().decode(end >= 0 ? releaseBytes.subarray(0, end) : releaseBytes)
+          : `protocol ${ver}`;
+        this.onServerVersion(this.serverVersion);
         this.send(playerInfo(this.playerId, this.name));
         break;
       }

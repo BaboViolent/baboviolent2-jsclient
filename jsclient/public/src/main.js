@@ -47,10 +47,16 @@ const sandboxMapList = document.getElementById('sandboxMapList');
 const sandboxEntry = new URLSearchParams(location.search).get('mode') === 'sandbox';
 if (sandboxEntry) document.getElementById('loading').hidden = true;
 
+let clientReleaseVersion = 'loading';
+let serverReleaseVersion = 'not connected';
+function renderReleaseVersions() {
+  igClientVersion.textContent = `Client version: ${clientReleaseVersion} · Server version: ${serverReleaseVersion}`;
+}
+renderReleaseVersions();
 fetch('/api/version')
   .then((response) => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
-  .then(({ version }) => { igClientVersion.textContent = `Client version: ${version || 'unknown'}`; })
-  .catch(() => { igClientVersion.textContent = 'Client version: unknown'; });
+  .then(({ version }) => { clientReleaseVersion = version || 'unknown'; renderReleaseVersions(); })
+  .catch(() => { clientReleaseVersion = 'unknown'; renderReleaseVersions(); });
 
 const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
 if (!gl) {
@@ -666,6 +672,8 @@ function disconnectOnline() {
   pendingTeamId = null;
   pendingPreviousTeamId = null;
   connectedServerLabel = '';
+  serverReleaseVersion = 'not connected';
+  renderReleaseVersions();
   mapLoadInFlight = null;
   deferredMapPackets.reset();
   game.resetHitFeedback();
@@ -740,6 +748,10 @@ async function startOnlinePlay(host, port, password, serverName = '') {
       url: wsUrl,
       name: settings.data.playerName,
       password,
+      onServerVersion: (version) => {
+        serverReleaseVersion = version || 'unknown';
+        renderReleaseVersions();
+      },
       onPacket: (typeId, payload) => {
         const applied = handleNetPacket(typeId, payload);
         if (typeId === NET.SVCL_SERVER_INFO) {
