@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.1...v0.9.2) (2026-08-21)
+
+
+### Bug Fixes
+
+* **client:** preserve authoritative actions and flame visuals ([b66ec67](https://github.com/BaboViolent/baboviolent2-jsclient/commit/b66ec671048652c4726d414cba695269a59fa152))
+
 ## [0.9.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.0...v0.9.1) (2026-08-21)
 
 
