@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.0...v0.10.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* **koth:** show paused contested hill progress ([fbcc91c](https://github.com/BaboViolent/baboviolent2-jsclient/commit/fbcc91ce9a621150a717e06a4c57c0dc51b724de))
+
 ## [0.10.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.7...v0.10.0) (2026-08-21)
 
 
