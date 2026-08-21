@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.2...v0.9.3) (2026-08-21)
+
+
+### Bug Fixes
+
+* **client:** persist chat and announce player lifecycle ([fa8d8e6](https://github.com/BaboViolent/baboviolent2-jsclient/commit/fa8d8e6b78d3a64d1f8a72006bf5e0ff6a2e7b65))
+
 ## [0.9.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.1...v0.9.2) (2026-08-21)
 
 
