@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.5](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.4...v0.9.5) (2026-08-21)
+
+
+### Bug Fixes
+
+* **client:** announce joins with profile names ([c64a13f](https://github.com/BaboViolent/baboviolent2-jsclient/commit/c64a13f1479d005890d1643c6b75c304e8ee482d))
+
 ## [0.9.4](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.3...v0.9.4) (2026-08-21)
 
 
