@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.7...v0.10.0) (2026-08-21)
+
+
+### Features
+
+* **koth:** support king of the hill matches ([14e5242](https://github.com/BaboViolent/baboviolent2-jsclient/commit/14e52429ab020bfb3937d300df949d5e7f804ed4))
+
 ## [0.9.7](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.6...v0.9.7) (2026-08-21)
 
 
