@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.6.0...v0.7.0) (2026-08-21)
+
+
+### Features
+
+* **client:** show connected server release version ([4fa5bd3](https://github.com/BaboViolent/baboviolent2-jsclient/commit/4fa5bd3a68d85186010434d80b2b1f0105a206c4))
+
+
+### Bug Fixes
+
+* **ctf:** keep carried flag visible at every aim angle ([c4050d1](https://github.com/BaboViolent/baboviolent2-jsclient/commit/c4050d132368f8ffce42ab525d5542e7ea56d2f1))
+
 ## [0.6.0](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.26...v0.6.0) (2026-08-21)
 
 
