@@ -244,7 +244,7 @@ function applyPlayerEnum(payload) {
   p._netStateGen = (p._netStateGen ?? 0) + 1;
   const generation = p._netStateGen;
   p.name = st.name;
-  if (p._announceServerJoin) {
+  if (p._announceServerJoin && !/^Player ?\d+$/.test(p.name)) {
     game.ui.addAnnouncement('\x09' + p.name + ' \x08joined the server');
     p._announceServerJoin = false;
   }
@@ -729,6 +729,10 @@ function handleNetPacket(typeId, payload) {
       const wireIp = readFixedStr(payload, 1, 16);
       const nameOffset = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(wireIp) ? 17 : 1;
       p.name = readFixedStr(payload, nameOffset, 32) || p.name;
+      if (p._announceServerJoin && !/^Player ?\d+$/.test(p.name)) {
+        game.ui.addAnnouncement('\x09' + p.name + ' \x08joined the server');
+        p._announceServerJoin = false;
+      }
       break;
     }
     case NET.SVCL_SERVER_DISCONNECT:

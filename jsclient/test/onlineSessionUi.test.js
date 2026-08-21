@@ -20,6 +20,8 @@ test('authoritative team changes and flag drops are announced in the event feed'
   assert.match(main, /game\.ui\.addAnnouncement\(announcement\)/);
   assert.match(main, /p\.name \+ ' \\x08went spectator'/);
   assert.match(main, /p\.name = st\.name;[\s\S]*p\.name \+ ' \\x08joined the server'/);
+  assert.match(main, /!\/\^Player \?\\d\+\$\/\.test\(p\.name\)/);
+  assert.match(main, /CLSV_SVCL_PLAYER_INFO:[\s\S]*_announceServerJoin[\s\S]*joined the server/);
   assert.match(main, /nameOffset = \/\^\(\?:\\d\{1,3\}\\\.\)\{3\}\\d\{1,3\}\$\//);
   assert.match(main, /p\.name \?\? 'Player'\) \+ ' \\x08left the server'/);
   assert.match(main, /carrier\.name \+ ' \\x08dropped the ' \+ \(flagId === 0 \? 'blue' : 'red'\) \+ ' flag'/);
