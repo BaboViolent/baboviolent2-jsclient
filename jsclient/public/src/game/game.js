@@ -14,6 +14,7 @@ import { CTFState, mapSupportsCTF } from './ctf.js';
 import { decalsForPlayer } from './skin.js';
 import { rayTest } from './raycast.js';
 import { WeatherSystem } from './weather.js';
+import { debugLog, debugLoggingEnabled } from '../debugLog.js';
 import {
   PLAYER_Z, WEAPONS, PROJECTILE_ROCKET, PROJECTILE_GRENADE, PROJECTILE_COCKTAIL_MOLOTOV,
   PROJECTILE_FLAME, PROJECTILE_LIFE_PACK, PROJECTILE_DROPED_WEAPON, PROJECTILE_DROPED_GRENADE,
@@ -29,6 +30,36 @@ import {
 
 const TRACER_DURATION = 0.08;
 const PHOTON_BEAM_DURATION = 30 / 30;
+
+const PROJECTILE_DEBUG_NAMES = {
+  [PROJECTILE_ROCKET]: 'rocket',
+  [PROJECTILE_GRENADE]: 'grenade',
+  [PROJECTILE_LIFE_PACK]: 'health',
+  [PROJECTILE_DROPED_WEAPON]: 'weapon',
+  [PROJECTILE_DROPED_GRENADE]: 'grenade-pack',
+  [PROJECTILE_COCKTAIL_MOLOTOV]: 'molotov',
+  [PROJECTILE_FLAME]: 'flame',
+};
+
+function debugProjectile(proj) {
+  const round = (value) => Math.round((value ?? 0) * 10000) / 10000;
+  return {
+    id: proj.uniqueID,
+    type: proj.type,
+    kind: PROJECTILE_DEBUG_NAMES[proj.type] ?? `type-${proj.type}`,
+    owner: proj.ownerID,
+    position: proj.currentCF.position.map(round),
+    velocity: proj.currentCF.vel.map(round),
+    duration: round(proj.duration),
+    age: round(proj.timeSinceThrown),
+    dead: proj.dead,
+    remote: proj.remoteEntity,
+    movementLock: proj.movementLock,
+    stickToPlayer: proj.stickToPlayer,
+    stickFor: round(proj.stickFor),
+    weaponDropID: proj.weaponDropID,
+  };
+}
 
 export class Game {
   constructor(renderer, input) {
@@ -75,6 +106,7 @@ export class Game {
     this.viewShake = 0;
     this.hitIndicator = 0;
     this.lastHitConfirmAt = -Infinity;
+    this.projectileDebugLastAt = -Infinity;
   }
 
   /** Spectators have no body: they observe from a free camera (Game.cpp:581). */
@@ -528,7 +560,15 @@ export class Game {
       }
       const result = proj.update(delay, this.map, this.players, this.particles, this.audio);
       if (result) this.applyProjectileResult(result);
-      if (proj.dead) this.projectiles.splice(i, 1);
+      if (proj.dead) {
+        debugLog('world-entity-remove', { source: 'client-simulation', entity: debugProjectile(proj) });
+        this.projectiles.splice(i, 1);
+      }
+    }
+
+    if (debugLoggingEnabled && performance.now() - this.projectileDebugLastAt >= 250) {
+      debugLog('world-entities', { entities: this.projectiles.map(debugProjectile) });
+      this.projectileDebugLastAt = performance.now();
     }
 
     for (let i = this.tracers.length - 1; i >= 0; i--) {
@@ -951,25 +991,33 @@ export class Game {
 
   spawnNetProjectile(sp) {
     const owner = this.resolvePlayer(sp.playerID);
-    if (!owner) return;
+    if (!owner) {
+      debugLog('world-entity-spawn-rejected', { reason: 'owner-missing', packet: sp });
+      return;
+    }
     // GameSpawn.cpp:497 — client copies are remoteEntity; thrower simulates fuse/burn.
     // Once online, every projectile copy follows Rust authority, including the
     // thrower's own copy. This prevents duplicate local fuse/burn reports.
     const authority = !this.onlineMode;
-    this.projectiles.push(new Projectile(
+    const projectile = new Projectile(
       sp.projectileType,
       sp.position,
       sp.vel,
       sp.playerID,
       sp.vel,
       { remoteEntity: !authority, uniqueID: sp.uniqueID, weaponDropID: sp.weaponID },
-    ));
+    );
+    this.projectiles.push(projectile);
+    debugLog('world-entity-spawn', { source: 'server-packet', entity: debugProjectile(projectile) });
     if (sp.projectileType === PROJECTILE_ROCKET) owner.rocketInAir = true;
   }
 
   applyProjectileCoordFrame(frame) {
     const projectile = this.projectiles.find((p) => p.uniqueID === frame.uniqueID);
-    if (!projectile) return;
+    if (!projectile) {
+      debugLog('world-entity-update-missing', { frame });
+      return;
+    }
     projectile.lastCF.position = [...projectile.currentCF.position];
     projectile.currentCF.position = [...frame.position];
     projectile.currentCF.vel = [...frame.vel];
@@ -977,7 +1025,12 @@ export class Game {
 
   deleteNetProjectile(uniqueID) {
     const projectile = this.projectiles.find((p) => p.uniqueID === uniqueID);
-    if (projectile) projectile.dead = true;
+    if (projectile) {
+      debugLog('world-entity-delete', { source: 'server-packet', entity: debugProjectile(projectile) });
+      projectile.dead = true;
+    } else {
+      debugLog('world-entity-delete-missing', { id: uniqueID });
+    }
   }
 
   processUIInput() {

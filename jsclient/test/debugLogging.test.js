@@ -22,3 +22,24 @@ test('local debug mode correlates CTF packets, revisions, and rendered flags', a
   assert.match(renderer, /authoritativePosition/);
   assert.match(renderer, /renderPosition/);
 });
+
+test('local debug mode correlates authoritative and rendered ground entities by ID', async () => {
+  const [game, renderer] = await Promise.all([
+    readFile(new URL('../public/src/game/game.js', import.meta.url), 'utf8'),
+    readFile(new URL('../public/src/render/renderer.js', import.meta.url), 'utf8'),
+  ]);
+
+  for (const event of [
+    'world-entity-spawn',
+    'world-entity-update-missing',
+    'world-entity-delete',
+    'world-entity-delete-missing',
+    'world-entity-remove',
+    'world-entities',
+  ]) {
+    assert.match(game, new RegExp(event));
+  }
+  assert.match(game, /kind: PROJECTILE_DEBUG_NAMES/);
+  assert.match(renderer, /debugLog\('world-render'/);
+  assert.match(renderer, /reason: 'model-missing'/);
+});

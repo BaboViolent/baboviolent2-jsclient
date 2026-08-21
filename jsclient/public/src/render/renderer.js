@@ -130,6 +130,7 @@ export class Renderer {
     this.renderScale = 1;
     this.flagDebugLastAt = 0;
     this.flagDebugLastSignature = '';
+    this.worldDebugLastAt = 0;
   }
 
   createVAOFromData(data) {
@@ -483,6 +484,7 @@ export class Renderer {
       }
     }
 
+    const renderedWorldEntities = [];
     for (const proj of game.projectiles) {
       if (proj.type === PROJECTILE_FLAME) continue;
       let built = game.projectileModels[proj.type];
@@ -496,7 +498,10 @@ export class Renderer {
       ) {
         scale = DROP_MODEL_SCALE;
       }
-      if (!built) continue;
+      if (!built) {
+        renderedWorldEntities.push({ id: proj.uniqueID, type: proj.type, rendered: false, reason: 'model-missing' });
+        continue;
+      }
       const a = proj.type === PROJECTILE_DROPED_WEAPON
         ? proj.rotation * (Math.PI / 180)
         : proj.currentCF.angle * (Math.PI / 180);
@@ -509,6 +514,22 @@ export class Renderer {
         0, 0, scale, 0,
         p[0], p[1], p[2], 1,
       ]));
+      renderedWorldEntities.push({ id: proj.uniqueID, type: proj.type, rendered: true });
+    }
+
+    if (debugLoggingEnabled && performance.now() - this.worldDebugLastAt >= 250) {
+      for (const proj of game.projectiles) {
+        if (proj.type === PROJECTILE_FLAME) {
+          renderedWorldEntities.push({
+            id: proj.uniqueID,
+            type: proj.type,
+            rendered: !proj.dead && Boolean(this.effectTextures.shotGlow || this.effectGlowTexture()),
+            reason: proj.dead ? 'dead' : (this.effectTextures.shotGlow || this.effectGlowTexture()) ? null : 'texture-missing',
+          });
+        }
+      }
+      debugLog('world-render', { entities: renderedWorldEntities });
+      this.worldDebugLastAt = performance.now();
     }
 
     this.renderBrass(game);
