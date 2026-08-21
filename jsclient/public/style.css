@@ -614,6 +614,10 @@ html, body {
   text-align: left;
 }
 
+.ig-col .ig-btn[hidden] {
+  display: none !important;
+}
+
 .ig-blue {
   color: #7eb8ff;
 }

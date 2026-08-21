@@ -1,6 +1,6 @@
 // In-game UI state: console, chat, kill feed, scoreboard (Client.cpp / Console.cpp / ClientRender.cpp).
 import {
-  WEAPONS, CHAT_TEAM_ALL, PLAYER_TEAM_SPECTATOR, GAME_TYPE_CTF, GAME_TYPE_TDM,
+  WEAPONS, CHAT_TEAM_ALL, PLAYER_TEAM_SPECTATOR, GAME_TYPE_CTF, GAME_TYPE_TDM, GAME_TYPE_KOTH,
 } from '../game/constants.js';
 import { parseColorRuns } from './colors.js';
 
@@ -64,7 +64,7 @@ export class GameUI {
   addKill(killer, victim, weaponID) {
     if (!killer || !victim) return;
     const weapon = WEAPONS[weaponID]?.name ?? '???';
-    const teamMode = this.game.gameType === GAME_TYPE_TDM || this.game.gameType === GAME_TYPE_CTF;
+    const teamMode = this.game.gameType === GAME_TYPE_TDM || this.game.gameType === GAME_TYPE_CTF || this.game.gameType === GAME_TYPE_KOTH;
     const kTeam = teamMode ? (killer.teamID === 0 ? '{' : killer.teamID === 1 ? '}' : '') : '';
     const vTeam = teamMode ? (victim.teamID === 0 ? '{' : victim.teamID === 1 ? '}' : '') : '';
     const killerReset = teamMode ? '' : '\x09';
@@ -202,7 +202,7 @@ export class GameUI {
         break;
       case 'vote': {
         const command = parts.slice(1).join(' ');
-        if (!command) this.log('\x04Usage: vote changemap <map> | vote set sv_gameType <0-3>');
+        if (!command) this.log('\x04Usage: vote changemap <map> | vote set sv_gameType <0-4>');
         else if (!game.onlineMode || !game.netClient) this.log('\x04Voting requires an online server');
         else game.netClient.requestVote(command);
         break;

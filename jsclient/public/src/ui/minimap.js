@@ -4,6 +4,7 @@ import {
   PLAYER_TEAM_RED,
   GAME_TYPE_CTF,
   GAME_TYPE_TDM,
+  GAME_TYPE_KOTH,
 } from '../game/constants.js';
 import { FLAG_AT_POD, FLAG_DROPPED } from '../game/ctf.js';
 
@@ -16,7 +17,7 @@ export function minimapPoint(position, bounds) {
 }
 
 export function visibleMinimapPlayers(players, viewer, gameType, spectating = false) {
-  const teamMode = gameType === GAME_TYPE_TDM || gameType === GAME_TYPE_CTF;
+  const teamMode = gameType === GAME_TYPE_TDM || gameType === GAME_TYPE_CTF || gameType === GAME_TYPE_KOTH;
   return players.filter((player) => {
     if (!player || player === viewer) return false;
     if (player.teamID !== PLAYER_TEAM_BLUE && player.teamID !== PLAYER_TEAM_RED) return false;

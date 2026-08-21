@@ -8,7 +8,7 @@ import { minimapPoint, visibleMinimapFlags, visibleMinimapPlayers } from './mini
 import {
   WEAPON_SNIPER, WEAPON_SHOTGUN, WEAPON_CHAIN_GUN, WEAPON_GRENADE,
   WEAPON_COCKTAIL_MOLOTOV, WEAPONS, SV_ENABLE_SHOTGUN_RELOAD,
-  GAME_TYPE_CTF, GAME_TYPE_TDM, GAME_TYPE_DM, GAME_TYPE_SND, SV_WIN_LIMIT,
+  GAME_TYPE_CTF, GAME_TYPE_TDM, GAME_TYPE_DM, GAME_TYPE_SND, GAME_TYPE_KOTH, SV_WIN_LIMIT,
   PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD,
   GAME_BLUE_WIN, GAME_RED_WIN, GAME_DRAW, GAME_PLAYING,
 } from '../game/constants.js';
@@ -512,9 +512,9 @@ export class Hud {
     let blueVal;
     let redVal;
     let limit;
-    if (game.gameType === GAME_TYPE_CTF) {
-      blueVal = game.ctf?.blueWin ?? 0;
-      redVal = game.ctf?.redWin ?? 0;
+    if (game.gameType === GAME_TYPE_CTF || game.gameType === GAME_TYPE_KOTH) {
+      blueVal = game.gameType === GAME_TYPE_CTF ? (game.ctf?.blueWin ?? 0) : (game.blueScore ?? 0);
+      redVal = game.gameType === GAME_TYPE_CTF ? (game.ctf?.redWin ?? 0) : (game.redScore ?? 0);
       limit = SV_WIN_LIMIT;
     } else {
       blueVal = game.blueScore ?? 0;
@@ -540,6 +540,12 @@ export class Hud {
     } else {
       flagRow(redTex, redVal, '\x04');
       flagRow(blueTex, blueVal, '\x01');
+    }
+    if (game.gameType === GAME_TYPE_KOTH) {
+      const controller = game.koth?.controller ?? -1;
+      const progress = controller === 0 ? game.koth.blueProgress : controller === 1 ? game.koth.redProgress : 0;
+      const status = controller === 2 ? 'HILL CONTESTED' : controller === 0 ? 'BLUE HOLDS HILL' : controller === 1 ? 'RED HOLDS HILL' : 'HILL OPEN';
+      this.text(20 * u, x, rowY, `${status} ${progress.toFixed(1)}/${game.koth?.goal ?? 15}s`, TEXT_COLORS[9]);
     }
 
   }
@@ -628,6 +634,8 @@ export class Hud {
     const isCTF = gt === GAME_TYPE_CTF;
     const isTDM = gt === GAME_TYPE_TDM;
     const isDM = gt === GAME_TYPE_DM;
+    const isKOTH = gt === GAME_TYPE_KOTH;
+    const isTeamScore = isTDM || isKOTH;
     const isFFA = isDM || gt === GAME_TYPE_SND;
 
     const boardX = Math.round(SCOREBOARD_X * sx);
@@ -671,7 +679,7 @@ export class Hud {
       if (isCTF) {
         this.text(fontSz, col.returnsL, y + padY, 'Retrn', TEXT_COLORS[9]);
         this.text(fontSz, col.capsL, y + padY, 'Caps', TEXT_COLORS[9]);
-      } else if (isTDM) {
+      } else if (isTeamScore) {
         this.text(fontSz, col.returnsL, y + padY, 'Score', TEXT_COLORS[9]);
       }
       this.text(fontSz, col.pingL, y + padY, 'PING', TEXT_COLORS[9]);
@@ -697,7 +705,7 @@ export class Hud {
       if (isCTF) {
         this.textCenter(fontSz, col.returns, y + padY, String(p.returns ?? 0), TEXT_COLORS[9]);
         this.textCenter(fontSz, col.caps, y + padY, String(p.score ?? 0), TEXT_COLORS[9]);
-      } else if (isTDM) {
+      } else if (isTeamScore) {
         this.textCenter(fontSz, col.score, y + padY, String(p.score ?? 0), TEXT_COLORS[9]);
       }
       const pingLabel = game.exploreMode ? '-' : String(p.ping ?? 0);
@@ -719,7 +727,8 @@ export class Hud {
 
     if (isFFA) {
       this.rect(boardX, y, boardW, rowH, [0.38, 0.38, 0.42, 0.92]);
-      this.text(fontSz, col.name, y + padY, 'FREE FOR ALL', TEXT_COLORS[9]);
+      const modeTitle = gt === GAME_TYPE_SND ? 'CHAMPION' : 'FREE FOR ALL';
+      this.text(fontSz, col.name, y + padY, modeTitle, TEXT_COLORS[9]);
       y += rowH;
       const sorted = game.players
         .filter((pl) => pl.teamID === PLAYER_TEAM_BLUE || pl.teamID === PLAYER_TEAM_RED)
@@ -731,7 +740,7 @@ export class Hud {
         this.rect(boardX, y, boardW, rowH, barColor);
         this.text(fontSz, col.name, y + padY, label, TEXT_COLORS[9]);
         if (isCTF) this.textCenter(fontSz, col.caps, y + padY, String(teamScore), TEXT_COLORS[9]);
-        else if (isTDM) this.textCenter(fontSz, col.score, y + padY, String(teamScore), TEXT_COLORS[9]);
+        else if (isTeamScore) this.textCenter(fontSz, col.score, y + padY, String(teamScore), TEXT_COLORS[9]);
         y += rowH;
         const players = game.players.filter((pl) => pl.teamID === teamId).sort(compareScoreboardPlayers);
         for (const p of players) drawPlayerRow(p);
@@ -825,7 +834,7 @@ export class Hud {
 
         // Team knowledge is shared on the minimap. Spectators can see both
         // teams; active players only see living friends, never enemies.
-        const teamMode = game.gameType === GAME_TYPE_TDM || game.gameType === GAME_TYPE_CTF;
+        const teamMode = game.gameType === GAME_TYPE_TDM || game.gameType === GAME_TYPE_CTF || game.gameType === GAME_TYPE_KOTH;
         for (const friend of visibleMinimapPlayers(game.players, player, game.gameType, spectating)) {
           const [friendX, friendY] = minimapPoint(friend.currentCF.position, bounds);
           const color = teamMode

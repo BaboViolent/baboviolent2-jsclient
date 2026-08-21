@@ -8,7 +8,7 @@ import { Menu2 } from './ui/menu2.js';
 import { WorldMapEditor } from './ui/worldMapEditor.js';
 import {
   WEAPONS, PRIMARY_WEAPON_IDS, MELEE_WEAPON_IDS,
-  GAME_TYPE_NAMES, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, GAME_TYPE_SND, GAME_PLAYING,
+  GAME_TYPE_NAMES, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, GAME_TYPE_SND, GAME_TYPE_KOTH, GAME_PLAYING,
   PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR, PLAYER_TEAM_DISCONNECTED, CHAT_TEAM_ALL,
 } from './game/constants.js';
 import { expandCaretColors, normalizeBv2Text } from './ui/colorInput.js';
@@ -620,6 +620,16 @@ function handleNetPacket(typeId, payload) {
       const t = parseSyncTimer(payload);
       game.gameTimeLeft = t.gameTimeLeft;
       game.roundTimeLeft = t.roundTimeLeft;
+      break;
+    }
+    case NET.SVCL_KOTH_STATE: {
+      if (payload.length < 29) break;
+      const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+      game.koth.controller = view.getInt8(0);
+      game.koth.blueProgress = view.getFloat32(1, true);
+      game.koth.redProgress = view.getFloat32(5, true);
+      game.koth.goal = view.getFloat32(9, true);
+      game.koth.bounds = [0, 1, 2, 3].map((index) => view.getFloat32(13 + index * 4, true));
       break;
     }
     case NET.SVCL_GAME_STATE: {

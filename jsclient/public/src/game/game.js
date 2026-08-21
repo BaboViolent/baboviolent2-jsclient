@@ -21,7 +21,7 @@ import {
   WEAPON_GRENADE, WEAPON_COCKTAIL_MOLOTOV, WEAPON_NUCLEAR, WEAPON_BAZOOKA, WEAPON_SMG, WEAPON_FLAME_THROWER,
   WEAPON_KNIVES, WEAPON_SHIELD, WEAPON_SNIPER, WEAPON_PHOTON_RIFLE,
   SV_NUKE_RADIUS, SV_NUKE_TIMER, weatherFromTheme,
-  GAME_TYPE_DM, GAME_TYPE_CTF, GAME_TYPE_TDM, PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR,
+  GAME_TYPE_DM, GAME_TYPE_CTF, GAME_TYPE_TDM, GAME_TYPE_KOTH, PLAYER_TEAM_BLUE, PLAYER_TEAM_RED, PLAYER_TEAM_SPECTATOR,
   PLAYER_STATUS_ALIVE, PLAYER_STATUS_DEAD,
   GAME_PLAYING,
   PLAYER_RADIUS, BOUNCE_FACTOR, SV_TIME_TO_SPAWN,
@@ -85,6 +85,7 @@ export class Game {
     this.redScore = 0;
     this.roundState = GAME_PLAYING;
     this.ctf = new CTFState();
+    this.koth = { controller: -1, blueProgress: 0, redProgress: 0, goal: 15, bounds: [0, 0, 0, 0] };
     this.exploreMode = false;
     this.onlineMode = false;
     this.musicEnabled = true;
@@ -555,7 +556,7 @@ export class Game {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const proj = this.projectiles[i];
       const owner = this.resolvePlayer(proj.ownerID);
-      const teamMode = this.gameType === GAME_TYPE_TDM || this.gameType === GAME_TYPE_CTF;
+      const teamMode = this.gameType === GAME_TYPE_TDM || this.gameType === GAME_TYPE_CTF || this.gameType === GAME_TYPE_KOTH;
       if (proj.type === PROJECTILE_ROCKET) {
         EFFECTS.rocketTrail(this.particles, proj.currentCF.position, owner?.teamID, teamMode);
       } else if (proj.type === PROJECTILE_GRENADE) {

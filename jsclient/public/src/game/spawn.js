@@ -1,5 +1,5 @@
 // Spawn selection — GameSpawn.cpp:208-303 (farthest from enemies on dm_spawns).
-import { PLAYER_Z, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, PLAYER_STATUS_ALIVE } from './constants.js';
+import { PLAYER_Z, GAME_TYPE_DM, GAME_TYPE_TDM, GAME_TYPE_CTF, GAME_TYPE_KOTH, PLAYER_STATUS_ALIVE } from './constants.js';
 
 /** Editor places spawns on passable tiles at cell centers (EditorTools.cpp:472). */
 export function spawnOnPassable(map, pos) {
@@ -41,7 +41,7 @@ export function pickSpawn(map, player, players, gameType = GAME_TYPE_DM) {
   const enemies = players.filter((p) => {
     if (p === player || p.status !== PLAYER_STATUS_ALIVE) return false;
     if (gameType === GAME_TYPE_DM) return true;
-    if (gameType === GAME_TYPE_TDM || gameType === GAME_TYPE_CTF) {
+    if (gameType === GAME_TYPE_TDM || gameType === GAME_TYPE_CTF || gameType === GAME_TYPE_KOTH) {
       return p.teamID >= 0 && p.teamID !== player.teamID;
     }
     return false;

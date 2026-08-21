@@ -19,13 +19,15 @@ export const GAME_TYPE_DM = 0;
 export const GAME_TYPE_TDM = 1;
 export const GAME_TYPE_CTF = 2;
 export const GAME_TYPE_SND = 3;
+export const GAME_TYPE_KOTH = 4;
+// BVM files retain the four original per-mode data sections; KOTH reuses DM and blue markers.
 export const GAME_TYPE_COUNT = 4;
 export const GAME_PLAYING = -1;
 export const GAME_BLUE_WIN = 0;
 export const GAME_RED_WIN = 1;
 export const GAME_DRAW = 2;
 
-export const GAME_TYPE_NAMES = ['Deathmatch', 'Team Deathmatch', 'Capture The Flag', 'Search & Destroy'];
+export const GAME_TYPE_NAMES = ['Deathmatch', 'Team Deathmatch', 'Capture The Flag', 'Champion', 'King of the Hill'];
 
 export const PLAYER_TEAM_SPECTATOR = -1;
 /** Local-only roster state for a player slot released by the server. */
