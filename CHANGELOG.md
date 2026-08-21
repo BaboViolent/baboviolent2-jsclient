@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.7](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.6...v0.9.7) (2026-08-21)
+
+
+### Bug Fixes
+
+* **ui:** clarify non-team game rosters ([efd2952](https://github.com/BaboViolent/baboviolent2-jsclient/commit/efd29521915ae2b2ce1ef18c41390dbc974c7644))
+
 ## [0.9.6](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.5...v0.9.6) (2026-08-21)
 
 
