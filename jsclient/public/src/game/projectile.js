@@ -129,6 +129,10 @@ export class Projectile {
     // at ten seconds just before the authoritative delete packet arrives.
     if (this.remoteEntity) {
       this.rotation += this.rotateVel * delay;
+      // The server owns flame movement, sticking, damage, and deletion, but
+      // the native flame body is particle-only. Skipping its visual emission
+      // leaves nothing except the renderer's ground glow.
+      if (this.type === PROJECTILE_FLAME) this.emitFlameVisuals(particles);
       return null;
     }
 
@@ -258,9 +262,9 @@ export class Projectile {
         cf.position[2] = FLAME_GROUND_Z;
         cf.vel = [0, 0, 0];
       } else {
-        cf.position[0] = stuck.currentCF.position[0];
-        cf.position[1] = stuck.currentCF.position[1];
-        cf.position[2] = FLAME_GROUND_Z;
+        // Native attached fire follows the complete player coordinate frame.
+        // Keeping it on the ground introduces artificial radial falloff.
+        cf.position = [...stuck.currentCF.position];
       }
       this.stickFor -= delay;
       if (this.stickFor <= 0) {
@@ -306,14 +310,7 @@ export class Projectile {
       }
     }
 
-    this.spawnParticleTime++;
-    if (this.spawnParticleTime >= 30) this.spawnParticleTime = 0;
-    if (particles && this.spawnParticleTime % 3 === 0) {
-      particles.spawnGroundFlame(cf.position);
-    }
-    if (particles && this.spawnParticleTime % 10 === 0) {
-      particles.spawnGroundFlameSmoke(cf.position);
-    }
+    this.emitFlameVisuals(particles);
 
     // ~20 server ticks between burns (GameProjectile.cpp:555) at 30 Hz.
     let burn = null;
@@ -336,6 +333,17 @@ export class Projectile {
       this.dead = true;
     }
     return burn;
+  }
+
+  emitFlameVisuals(particles) {
+    this.spawnParticleTime++;
+    if (this.spawnParticleTime >= 30) this.spawnParticleTime = 0;
+    if (particles && this.spawnParticleTime % 3 === 0) {
+      particles.spawnGroundFlame(this.currentCF.position);
+    }
+    if (particles && this.spawnParticleTime % 10 === 0) {
+      particles.spawnGroundFlameSmoke(this.currentCF.position);
+    }
   }
 
   spawnFlamePatch(normal) {

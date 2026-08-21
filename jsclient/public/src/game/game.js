@@ -450,6 +450,10 @@ export class Game {
           this.input.consumeThrowMolotov())
       ) {
         this.requestOnlineRespawn();
+        // Mouse1 is both the respawn gesture and primary fire. Consume the
+        // complete held/edge state so the authoritative spawn cannot turn the
+        // same physical click into an initial bullet.
+        this.input.clearGameplayActions('respawn-request');
       }
       this.updateWorld(delay);
       return;

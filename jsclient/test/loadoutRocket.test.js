@@ -23,6 +23,15 @@ test('projectile trails use native team colors', () => {
   assert.deepEqual(projectileTrailColor(0, false, 0.75), [1, 1, 1, 0.75]);
 });
 
+test('full particle pool recycles oldest slots instead of starving later flames', () => {
+  const particles = new ParticleSystem(2);
+  const spawn = (x) => particles.spawn({ position: [x, 0, 0], count: 1 });
+  spawn(1);
+  spawn(2);
+  spawn(3);
+  assert.deepEqual(particles.particles.map((particle) => particle.pos[0]), [2, 3]);
+});
+
 test('network rockets face their velocity and never run local collision', () => {
   const rocket = new Projectile(PROJECTILE_ROCKET, [2, 2, 0], [1, 0, 0], 0, [2.5, 0, 0], { remoteEntity: true });
   assert.equal(rocket.currentCF.angle, -90);
@@ -36,9 +45,26 @@ test('network rockets face their velocity and never run local collision', () => 
 test('network flames wait for the authoritative delete packet', () => {
   const flame = new Projectile(PROJECTILE_FLAME, [2, 2, 0], [0, 0, 0], 0, [0, 0, 0], { remoteEntity: true });
   flame.duration = 0.001;
-  flame.update(1, null, [], null);
+  let flamePuffs = 0;
+  const particles = {
+    spawnGroundFlame() { flamePuffs++; },
+    spawnGroundFlameSmoke() {},
+  };
+  flame.update(1 / 60, null, [], particles);
+  flame.update(1 / 60, null, [], particles);
+  flame.update(1 / 60, null, [], particles);
   assert.equal(flame.dead, false);
   assert.equal(flame.duration, 0.001);
+  assert.equal(flamePuffs, 1, 'server-owned flame must still emit its visible body');
+});
+
+test('locally authoritative attached flame follows the full player height', () => {
+  const flame = new Projectile(PROJECTILE_FLAME, [2, 2, 0], [0, 0, 0], 0, [0, 0, 0]);
+  flame.stickToPlayer = 1;
+  flame.stickFor = 3;
+  const carrier = { playerID: 1, status: 1, currentCF: { position: [3, 4, 0.25] } };
+  flame.update(1 / 60, null, [carrier], null);
+  assert.deepEqual(flame.currentCF.position, carrier.currentCF.position);
 });
 
 test('network health and grenade packs cannot disappear from local pickup or expiry', () => {

@@ -400,7 +400,7 @@ export class Menu2 {
         return;
       }
       list.innerHTML = servers.map((sv) =>
-        `<li data-host="${escapeHtml(sv.ip)}" data-name="${escapeHtml(sv.name)}"><strong>${escapeHtml(sv.name)}</strong> — ${escapeHtml(sv.map)} (${Number(sv.players)}/${Number(sv.maxPlayers)}) ping ${Number(sv.ping)}ms</li>`,
+        `<li data-host="${escapeHtml(sv.wsUrl || sv.ip)}" data-name="${escapeHtml(sv.name)}"><strong>${escapeHtml(sv.name)}</strong> — ${escapeHtml(sv.map)} (${Number(sv.players)}/${Number(sv.maxPlayers)}) ping ${Number(sv.ping)}ms</li>`,
       ).join('');
       list.querySelectorAll('li[data-host]').forEach((li) => {
         li.addEventListener('click', () => {
@@ -409,10 +409,7 @@ export class Menu2 {
           s.lastIP = li.dataset.host;
           s.lastPort = 0;
           this.settings.save();
-        });
-        li.addEventListener('dblclick', () => {
           if (this.onJoin) {
-            const s = this.settings.data;
             void this.onJoin(li.dataset.host, null, s.joinPassword ?? '', li.dataset.name ?? '');
           }
         });

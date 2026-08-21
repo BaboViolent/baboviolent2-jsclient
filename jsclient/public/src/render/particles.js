@@ -26,8 +26,14 @@ export class ParticleSystem {
     durationFrom = 0.5, durationTo = 2, startColor = [1, 1, 1, 1], endColor = [1, 1, 1, 0],
     gravity = 0, airResistance = 0.25, count = 5, texture = 'smoke1', additive = false,
   }) {
-    for (let i = 0; i < count; i++) {
-      if (this.particles.length >= this.max) break;
+    // The native fixed particle pool recycles slots. Dropping every new
+    // particle once full starves later world entities in iteration order; in
+    // a busy match that made one Molotov patch show fire while its paired
+    // patch retained only the separately-rendered glow.
+    const spawnCount = Math.min(count, this.max);
+    const overflow = this.particles.length + spawnCount - this.max;
+    if (overflow > 0) this.particles.splice(0, overflow);
+    for (let i = 0; i < spawnCount; i++) {
       const pitch = rand(0, pitchTo) * (Math.PI / 180);
       const yaw = rand(0, Math.PI * 2);
       // Cone around `direction`, approximated with a tangent basis.

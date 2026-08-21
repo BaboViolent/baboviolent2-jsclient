@@ -1,4 +1,6 @@
 // Keyboard/mouse state. Key bindings mirror the defaults in src/Source/GameVar.cpp.
+import { debugLog } from './debugLog.js';
+
 export class Input {
   constructor(canvas, bindings = {}) {
     this.keys = new Set();
@@ -39,9 +41,11 @@ export class Input {
       if (e.button === 2) e.preventDefault();
       if ((this.mouse.buttons & (1 << e.button)) === 0) this.mousePressed.add(e.button);
       this.mouse.buttons |= 1 << e.button;
+      debugLog('game-input', { action: 'mouse-down', button: e.button, buttons: this.mouse.buttons });
     });
     window.addEventListener('mouseup', (e) => {
       this.mouse.buttons &= ~(1 << e.button);
+      debugLog('game-input', { action: 'mouse-up', button: e.button, buttons: this.mouse.buttons });
     });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     // Middle-click autoscroll would steal MMB; keep focus on the canvas.
@@ -59,6 +63,16 @@ export class Input {
   }
 
   setBindings(bindings) { this.bindings = bindings; }
+
+  /** Discard combat actions that happened while gameplay could not consume them. */
+  clearGameplayActions(reason = 'state-boundary') {
+    const priorButtons = this.mouse.buttons;
+    const priorPressed = [...this.mousePressed];
+    this.mouse.buttons = 0;
+    this.mousePressed.clear();
+    this.keys.delete(this.bound('melee', 'Space'));
+    debugLog('game-input-reset', { reason, priorButtons, priorPressed });
+  }
   setMobileScoreboard(visible) { this.mobileScoreboard = visible; }
   setTouchMove(direction, active) {
     if (active) this.touchMoves.add(direction);

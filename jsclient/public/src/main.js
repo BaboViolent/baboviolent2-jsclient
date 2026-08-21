@@ -110,6 +110,7 @@ let mapLoadInFlight = null;
 const deferredMapPackets = new DeferredPacketQueue();
 
 function beginDeferredMapLoad(mapName) {
+  input.clearGameplayActions('map-load-begin');
   debugLog('map-load-begin', {
     requestedMap: mapName,
     currentMap: game.map?.name ?? null,
@@ -129,6 +130,7 @@ function beginDeferredMapLoad(mapName) {
       playerBefore: flagDebugPlayerState(),
     });
     for (const [queuedType, queuedPayload] of queued) handleNetPacket(queuedType, queuedPayload);
+    input.clearGameplayActions('map-load-complete');
     debugLog('map-load-complete', { loadedMap: game.map?.name ?? null, playerAfter: flagDebugPlayerState() });
     updateIngameMenuLabels();
   });
@@ -299,6 +301,7 @@ function applyPlayerSpawn(payload) {
   void game.setMeleeWeapon(p, sp.meleeID, generation);
   if (sp.playerID === game.thisPlayer.playerID) game.snapCameraToSpawn(sp.position);
   if (sp.playerID === game.thisPlayer.playerID) {
+    input.clearGameplayActions('authoritative-spawn');
     debugLog('local-player-spawn', { packet: sp, applied: flagDebugPlayerState(), map: game.map?.name ?? null });
   }
   if (sp.playerID === game.thisPlayer.playerID && onlineAwaitingSpawn) {
