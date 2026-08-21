@@ -501,7 +501,7 @@ export class Menu2 {
       </section>`).join('');
     this.panels.credits.innerHTML = `
       <div class="panel-inner panel-credits">
-        <div class="cred-title">BaboViolent 2 | Team</div>
+        <div class="cred-title">BaboViolent | Team</div>
         ${html}
       </div>`;
   }
