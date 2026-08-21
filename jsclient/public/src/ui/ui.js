@@ -195,14 +195,10 @@ export class GameUI {
 
     switch (cmd) {
       case 'help':
-        this.log('\x03Commands: help, clear, map, vote, say, sayteam, connect, disconnect');
+        this.log('\x03Commands: help, clear, vote, say, sayteam');
         break;
       case 'clear':
         this.consoleMessages.length = 0;
-        break;
-      case 'map':
-        if (parts[1] && game.onMapRequest) void game.onMapRequest(parts[1]);
-        else this.log('\x04Usage: map <name>');
         break;
       case 'vote': {
         const command = parts.slice(1).join(' ');
@@ -214,7 +210,7 @@ export class GameUI {
       case 'say':
         if (parts.length > 1) {
           const msg = parts.slice(1).join(' ');
-          if (game.onlineMode && game.netClient) game.netClient.sendChat(-1, msg);
+          if (game.onlineMode && game.netClient) game.netClient.sendChat(CHAT_TEAM_ALL, msg);
           else this.addChat(msg, false);
         }
         break;
@@ -224,18 +220,6 @@ export class GameUI {
           if (game.onlineMode && game.netClient) game.netClient.sendChat(game.thisPlayer.teamID, msg);
           else this.addChat(msg, true);
         }
-        break;
-      case 'connect':
-        if (window.bv2Connect) {
-          const host = parts[1] ?? '127.0.0.1';
-          const port = Number(parts[2]) || 8080;
-          const pass = parts.slice(3).join(' ') || '';
-          void window.bv2Connect(host, port, pass);
-        } else this.log('\x04Not ready');
-        break;
-      case 'disconnect':
-        if (window.bv2Disconnect) window.bv2Disconnect();
-        else this.log('\x04Not connected');
         break;
       default:
         this.log('\x04Unknown command: ' + cmd);

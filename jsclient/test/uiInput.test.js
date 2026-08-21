@@ -50,6 +50,31 @@ test('vote console command and F1/F2 action use the network vote flow', () => {
   assert.match(ui.eventMessages.at(-1).message, /Vote passed/);
 });
 
+test('say and sayteam console commands use the global and current-team channels', () => {
+  const game = onlineGame();
+  const ui = new GameUI(game);
+
+  ui.runCommand('say hello everyone');
+  ui.runCommand('sayteam defend our flag');
+
+  assert.deepEqual(game.sent, [
+    { teamID: CHAT_TEAM_ALL, message: 'hello everyone' },
+    { teamID: game.thisPlayer.teamID, message: 'defend our flag' },
+  ]);
+});
+
+test('obsolete map and connection console commands are unavailable', () => {
+  const ui = new GameUI(onlineGame());
+
+  ui.runCommand('help');
+  assert.equal(ui.consoleMessages.at(-1), '\x03Commands: help, clear, vote, say, sayteam');
+
+  for (const command of ['map CTF-Alert', 'connect localhost', 'disconnect']) {
+    ui.runCommand(command);
+    assert.match(ui.consoleMessages.at(-1), /^\x04Unknown command:/);
+  }
+});
+
 test('active vote captures F1 and F2 before browser defaults', async () => {
   const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
   assert.match(main, /\['F1', 'F2'\]\.includes\(event\.code\)/);
