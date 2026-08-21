@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.25](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.24...v0.5.25) (2026-08-21)
+
+
+### Bug Fixes
+
+* **chat:** render live colors and Alt codes ([2db3aa1](https://github.com/BaboViolent/baboviolent2-jsclient/commit/2db3aa1eaa115e6cd246306c5ff3d417ee5e279e))
+
 ## [0.5.24](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.23...v0.5.24) (2026-08-20)
 
 
