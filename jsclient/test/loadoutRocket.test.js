@@ -4,7 +4,10 @@ import { Player } from '../public/src/game/player.js';
 import { Weapon } from '../public/src/game/weapon.js';
 import { Projectile } from '../public/src/game/projectile.js';
 import { EFFECTS, ParticleSystem, projectileTrailColor } from '../public/src/render/particles.js';
-import { WEAPONS, WEAPON_BAZOOKA, WEAPON_SHOTGUN, WEAPON_FLAME_THROWER, PROJECTILE_ROCKET, PROJECTILE_FLAME } from '../public/src/game/constants.js';
+import {
+  WEAPONS, WEAPON_BAZOOKA, WEAPON_SHOTGUN, WEAPON_FLAME_THROWER,
+  PROJECTILE_ROCKET, PROJECTILE_FLAME, PROJECTILE_LIFE_PACK, PROJECTILE_DROPED_GRENADE,
+} from '../public/src/game/constants.js';
 
 test('pending loadout does not replace the current living weapon', () => {
   const player = new Player(0);
@@ -36,6 +39,18 @@ test('network flames wait for the authoritative delete packet', () => {
   flame.update(1, null, [], null);
   assert.equal(flame.dead, false);
   assert.equal(flame.duration, 0.001);
+});
+
+test('network health and grenade packs cannot disappear from local pickup or expiry', () => {
+  const nearbyLivingPlayer = { playerID: 2, status: 0, currentCF: { position: [2, 2, 0.25] } };
+  for (const type of [PROJECTILE_LIFE_PACK, PROJECTILE_DROPED_GRENADE]) {
+    const pickup = new Projectile(type, [2, 2, 0], [0, 0, 0], 0, [0, 0, 0], { remoteEntity: true });
+    pickup.duration = 0.001;
+    const result = pickup.update(1, null, [nearbyLivingPlayer], null);
+    assert.equal(result, null);
+    assert.equal(pickup.dead, false);
+    assert.equal(pickup.duration, 0.001);
+  }
 });
 
 test('native base flamethrower and photon contracts stay intact', () => {
