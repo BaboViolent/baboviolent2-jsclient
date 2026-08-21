@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.26](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.25...v0.5.26) (2026-08-21)
+
+
+### Bug Fixes
+
+* **client:** pause movement during map transitions ([f9de4b9](https://github.com/BaboViolent/baboviolent2-jsclient/commit/f9de4b927e0de209adef455f770c77a170b83e0f))
+* **ctf:** reject stale flag snapshots ([8b18293](https://github.com/BaboViolent/baboviolent2-jsclient/commit/8b18293657fdbf5c3678e3c8416e3d2374e63c43))
+
 ## [0.5.25](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.5.24...v0.5.25) (2026-08-21)
 
 
