@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { carriedFlagMatrix, CARRIED_FLAG_TILT } from '../public/src/render/renderer.js';
 
 test('carried flag uses the native carrier position and aim-relative angle', async () => {
   const renderer = await readFile(new URL('../public/src/render/renderer.js', import.meta.url), 'utf8');
@@ -14,14 +15,23 @@ test('carried flag uses the native carrier position and aim-relative angle', asy
   assert.doesNotMatch(hud, /YOU HAVE THE FLAG/);
 });
 
-test('carried flag preserves the native upright DKO transform', async () => {
+test('carried flag is pitched toward the top-down camera for stable visibility', async () => {
   const renderer = await readFile(new URL('../public/src/render/renderer.js', import.meta.url), 'utf8');
-  const modelMatrix = renderer.match(/const modelMatrix = new Float32Array\(\[([\s\S]*?)\]\)/)?.[1] ?? '';
 
-  assert.match(modelMatrix, /c, s, 0, 0,/);
-  assert.match(modelMatrix, /-s, c, 0, 0,/);
-  assert.match(modelMatrix, /0, 0, scale, 0,/);
+  assert.match(renderer, /CARRIED_FLAG_TILT/);
+  assert.match(renderer, /carriedFlagMatrix\(p, angle, scale\)/);
   assert.match(renderer, /this\.models\.draw\(f\.built, modelMatrix, anim\);/);
+});
+
+test('carried flag has an angle-independent top-down cloth footprint', () => {
+  const scale = 0.005;
+  const expected = Math.sin(CARRIED_FLAG_TILT) * scale;
+  for (let degrees = 0; degrees < 360; degrees += 5) {
+    const matrix = carriedFlagMatrix([4, 8, 0.25], degrees * Math.PI / 180, scale);
+    // Column 2 maps the flag's authored vertical axis into world space. Its
+    // XY magnitude is its visible top-down width and must never collapse.
+    assert.ok(Math.abs(Math.hypot(matrix[8], matrix[9]) - expected) < 1e-7);
+  }
 });
 
 test('native map-misc order draws flags before player bodies and weapons', async () => {

@@ -59,6 +59,25 @@ void main() {
 
 const STRIDE = 7 * 4;
 
+// The native upright flag is nearly edge-on to our exact top-down WebGL
+// camera. A small local pitch keeps carried cloth large enough in screen space
+// to remain visible through every aim angle. Pod and dropped flags keep their
+// authored transform.
+export const CARRIED_FLAG_TILT = 25 * (Math.PI / 180);
+
+export function carriedFlagMatrix(position, angle, scale = WEAPON_MODEL_SCALE) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const ct = Math.cos(CARRIED_FLAG_TILT);
+  const st = Math.sin(CARRIED_FLAG_TILT);
+  return new Float32Array([
+    c * scale, s * scale, 0, 0,
+    -s * ct * scale, c * ct * scale, st * scale, 0,
+    s * st * scale, -c * st * scale, ct * scale, 0,
+    position[0], position[1], position[2] ?? 0.25, 1,
+  ]);
+}
+
 /** Project a world point into canvas pixels, matching Player::onScreenPos. */
 export function projectWorldToScreen(mvp, point, width, height) {
   const [x, y, z = 0] = point;
@@ -604,12 +623,14 @@ export class Renderer {
       }
       const c = Math.cos(angle) * scale;
       const s = Math.sin(angle) * scale;
-      const modelMatrix = new Float32Array([
-        c, s, 0, 0,
-        -s, c, 0, 0,
-        0, 0, scale, 0,
-        p[0], p[1], p[2] ?? 0.25, 1,
-      ]);
+      const modelMatrix = carrier >= 0
+        ? carriedFlagMatrix(p, angle, scale)
+        : new Float32Array([
+          c, s, 0, 0,
+          -s, c, 0, 0,
+          0, 0, scale, 0,
+          p[0], p[1], p[2] ?? 0.25, 1,
+        ]);
       this.models.draw(f.built, modelMatrix, anim);
     }
     gl.bindVertexArray(null);
