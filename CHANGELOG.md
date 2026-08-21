@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.1...v0.10.2) (2026-08-21)
+
+
+### Bug Fixes
+
+* **branding:** standardize BaboViolent share metadata ([f91c83b](https://github.com/BaboViolent/baboviolent2-jsclient/commit/f91c83b4114a5fa1dee32b6c8a8454cc3f2e42ae))
+
 ## [0.10.1](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.0...v0.10.1) (2026-08-21)
 
 
