@@ -17,7 +17,7 @@ import { Bv2Client, NET_PLAYER_STATUS_ALIVE, NET_PLAYER_STATUS_DEAD } from './ne
 import { NET } from './net/protocol.js';
 import { parsePlayerEnumState, parsePlayerSpawn, parseCoordFrame, parsePlayerShoot, parsePlayerHit, parseExplosion, parseChat, parseSyncTimer, parsePlayerPing, parsePlayerProjectile, parseProjectileCoordFrame, parseVoteRequest, parsePlayerChangeName, parsePlayerUpdateSkin, readFixedStr } from './net/packet.js';
 import { FLAG_AT_POD, FLAG_DROPPED } from './game/ctf.js';
-import { debugLog } from './debugLog.js';
+import { debugLog, debugLoggingEnabled } from './debugLog.js';
 import { decalsForPlayer, normalizeDecals } from './game/skin.js';
 import { WEAPON_FLAME_THROWER, WEAPON_GRENADE, SV_WIN_LIMIT, SV_TIME_TO_SPAWN, PLAYER_Z } from './game/constants.js';
 import { Player } from './game/player.js';
@@ -104,11 +104,17 @@ let sessionActive = false;
 let netClient = null;
 let cancelPendingConnect = null;
 let onlineAwaitingSpawn = false;
+let localPlayerDebugLastAt = 0;
 /** Packets sent after map-change are replayed only after the async map load. */
 let mapLoadInFlight = null;
 const deferredMapPackets = new DeferredPacketQueue();
 
 function beginDeferredMapLoad(mapName) {
+  debugLog('map-load-begin', {
+    requestedMap: mapName,
+    currentMap: game.map?.name ?? null,
+    player: flagDebugPlayerState(),
+  });
   deferredMapPackets.reset();
   const load = switchMap(mapName, { skipSpawn: true, preserveMatchState: true });
   mapLoadInFlight = load;
@@ -116,10 +122,29 @@ function beginDeferredMapLoad(mapName) {
     if (mapLoadInFlight !== load) return;
     mapLoadInFlight = null;
     const queued = deferredMapPackets.drain();
+    debugLog('map-load-replay', {
+      requestedMap: mapName,
+      loadedMap: game.map?.name ?? null,
+      queuedPackets: queued.map(([type]) => type),
+      playerBefore: flagDebugPlayerState(),
+    });
     for (const [queuedType, queuedPayload] of queued) handleNetPacket(queuedType, queuedPayload);
+    debugLog('map-load-complete', { loadedMap: game.map?.name ?? null, playerAfter: flagDebugPlayerState() });
     updateIngameMenuLabels();
   });
   return load;
+}
+
+function flagDebugPlayerState() {
+  const p = game.thisPlayer;
+  return {
+    id: p.playerID,
+    team: p.teamID,
+    status: p.status,
+    life: p.life,
+    position: p.currentCF.position.map((value) => Math.round(value * 10000) / 10000),
+    velocity: p.currentCF.vel.map((value) => Math.round(value * 10000) / 10000),
+  };
 }
 /** Team we asked for but the server has not echoed yet; enum packets must not undo it. */
 let pendingTeamId = null;
@@ -238,6 +263,7 @@ function applyPlayerEnum(payload) {
     p.weaponID = st.weaponID;
     void game.setWeapon(p, st.weaponID, generation);
   }
+  if (isMe) debugLog('local-player-enum', { packet: st, applied: flagDebugPlayerState(), map: game.map?.name ?? null });
   void applyPlayerSkin(p, st.skin, st.decals);
   if (
     p.status === PLAYER_STATUS_DEAD
@@ -272,6 +298,9 @@ function applyPlayerSpawn(payload) {
   void game.setWeapon(p, sp.weaponID, generation);
   void game.setMeleeWeapon(p, sp.meleeID, generation);
   if (sp.playerID === game.thisPlayer.playerID) game.snapCameraToSpawn(sp.position);
+  if (sp.playerID === game.thisPlayer.playerID) {
+    debugLog('local-player-spawn', { packet: sp, applied: flagDebugPlayerState(), map: game.map?.name ?? null });
+  }
   if (sp.playerID === game.thisPlayer.playerID && onlineAwaitingSpawn) {
     onlineAwaitingSpawn = false;
     resumeGame();
@@ -588,6 +617,7 @@ function handleNetPacket(typeId, payload) {
       const state = payload[0] >= 128 ? payload[0] - 256 : payload[0];
       const reInit = payload[1] !== 0;
       game.roundState = state;
+      debugLog('round-state', { state, reInit, map: game.map?.name ?? null, player: flagDebugPlayerState() });
       if (reInit) {
         game.resetRoundTransientState();
         game.blueScore = 0;
@@ -616,6 +646,7 @@ function handleNetPacket(typeId, payload) {
     case NET.SVCL_MAP_CHANGE: {
       if (payload.length < 17) break;
       const mapName = readFixedStr(payload, 0, 16);
+      debugLog('map-change', { mapName, currentMap: game.map?.name ?? null, player: flagDebugPlayerState() });
       game.gameType = payload[16] >= 128 ? payload[16] - 256 : payload[16];
       // Treat map-change as an authoritative scoreboard boundary even if a
       // reordered/lost re-init packet never reached this client.
@@ -1355,11 +1386,36 @@ async function boot() {
       }
     }
 
-    game.update(delay);
+    if (game.onlineMode && mapLoadInFlight) {
+      // A map swap becomes visible before all models/textures finish loading.
+      // Do not integrate the old-map body against the new map while the
+      // authoritative spawn is still queued; it can fall out of bounds and
+      // resume several tiles away from the server after the load completes.
+      game.thisPlayer.currentCF.vel = [0, 0, 0];
+      game.thisPlayer.lastCF.position = [...game.thisPlayer.currentCF.position];
+      game.thisPlayer.lastCF.vel = [0, 0, 0];
+      game.updateWorld(delay);
+    } else {
+      game.update(delay);
+    }
+    if (debugLoggingEnabled && game.onlineMode) {
+      const now = performance.now();
+      const falling = game.thisPlayer.currentCF.position[2] < 0.2;
+      if (falling || now - localPlayerDebugLastAt >= 1000) {
+        debugLog('local-player-frame', {
+          map: game.map?.name ?? null,
+          roundState: game.roundState,
+          mapLoading: Boolean(mapLoadInFlight),
+          player: flagDebugPlayerState(),
+        });
+        localPlayerDebugLastAt = now;
+      }
+    }
     if (
       game.onlineMode &&
       netClient?.connected &&
       !mapLoadInFlight &&
+      game.roundState === GAME_PLAYING &&
       game.ui.playing &&
       !game.ui.menuOpen &&
       game.thisPlayer.status === PLAYER_STATUS_ALIVE

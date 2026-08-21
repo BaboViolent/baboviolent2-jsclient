@@ -1,5 +1,7 @@
 const params = new URLSearchParams(typeof location === 'undefined' ? '' : location.search);
-export const debugLoggingEnabled = params.get('debug') === '1';
+const localDebugHost = typeof location !== 'undefined'
+  && ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+export const debugLoggingEnabled = params.get('debug') === '1' || localDebugHost;
 
 const session = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 let sequence = 0;

@@ -46,7 +46,15 @@ test('map transition never sends stale-map movement after the server respawns th
   const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
   assert.match(
     main,
-    /game\.onlineMode &&[\s\S]*?netClient\?\.connected &&[\s\S]*?!mapLoadInFlight &&[\s\S]*?netClient\.sendCoordFrame/,
+    /game\.onlineMode &&[\s\S]*?netClient\?\.connected &&[\s\S]*?!mapLoadInFlight &&[\s\S]*?game\.roundState === GAME_PLAYING &&[\s\S]*?netClient\.sendCoordFrame/,
+  );
+});
+
+test('map transition freezes local physics until the authoritative spawn is replayed', async () => {
+  const main = await readFile(new URL('../public/src/main.js', import.meta.url), 'utf8');
+  assert.match(
+    main,
+    /if \(game\.onlineMode && mapLoadInFlight\)[\s\S]*?currentCF\.vel = \[0, 0, 0\][\s\S]*?game\.updateWorld\(delay\)[\s\S]*?else \{[\s\S]*?game\.update\(delay\)/,
   );
 });
 
