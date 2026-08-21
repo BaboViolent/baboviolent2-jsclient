@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.6](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.5...v0.9.6) (2026-08-21)
+
+
+### Bug Fixes
+
+* **console:** restore chat commands ([304c448](https://github.com/BaboViolent/baboviolent2-jsclient/commit/304c448ba658c3078ab5a87d4e6752d4a6c7a79a))
+
 ## [0.9.5](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.9.4...v0.9.5) (2026-08-21)
 
 
