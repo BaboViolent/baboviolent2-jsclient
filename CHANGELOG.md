@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.7](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.6...v0.10.7) (2026-08-22)
+
+
+### Bug Fixes
+
+* **release:** use canonical BaboViolent image path ([2c56e69](https://github.com/BaboViolent/baboviolent2-jsclient/commit/2c56e6970f1b9865d5cf84c19369e088feabc69c))
+
 ## [0.10.6](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.5...v0.10.6) (2026-08-22)
 
 
