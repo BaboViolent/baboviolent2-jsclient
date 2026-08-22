@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.3...v0.10.4) (2026-08-22)
+
+
+### Bug Fixes
+
+* **ci:** use Zot-compatible Cosign signatures ([b5e0a9d](https://github.com/BaboViolent/baboviolent2-jsclient/commit/b5e0a9d05eb11d3b0fc4812a8efe2ed22d5dca6c))
+
 ## [0.10.3](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.2...v0.10.3) (2026-08-22)
 
 
