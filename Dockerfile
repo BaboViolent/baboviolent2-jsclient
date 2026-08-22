@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim
+FROM cgr.dev/chainguard/node:latest
 ARG CLIENT_VERSION=development
 ENV CLIENT_VERSION=$CLIENT_VERSION
 WORKDIR /app
@@ -8,5 +8,4 @@ COPY jsclient/public ./jsclient/public
 COPY Content ./Content
 ENV PORT=8080
 EXPOSE 8080
-USER node
-CMD ["node", "jsclient/server.js"]
+CMD ["jsclient/server.js"]
