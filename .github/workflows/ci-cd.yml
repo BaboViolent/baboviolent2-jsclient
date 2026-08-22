@@ -43,7 +43,7 @@ jobs:
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
-          images: zot.standouthost.com/standouthost/baboviolent2-jsclient
+          images: zot.standouthost.com/baboviolent/baboviolent2-jsclient
           tags: type=raw,value=${{ github.ref_name }}
           labels: |
             org.opencontainers.image.title=Babo Violent 2 Web Client
@@ -71,7 +71,7 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
         run: |
-          image="zot.standouthost.com/standouthost/baboviolent2-jsclient@${{ steps.push-image.outputs.digest }}"
+          image="zot.standouthost.com/baboviolent/baboviolent2-jsclient@${{ steps.push-image.outputs.digest }}"
           cosign sign --yes --new-bundle-format=false --use-signing-config=false --registry-referrers-mode=legacy --key env://COSIGN_PRIVATE_KEY "$image"
           cosign verify --key env://COSIGN_PUBLIC_KEY "$image"
       - name: Update Argo CD image tag
