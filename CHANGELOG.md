@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.2...v0.10.3) (2026-08-22)
+
+
+### Bug Fixes
+
+* **container:** block vulnerable release images ([0bfece5](https://github.com/BaboViolent/baboviolent2-jsclient/commit/0bfece5996c31595b1089364431108aa0036880b))
+
 ## [0.10.2](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.1...v0.10.2) (2026-08-21)
 
 
