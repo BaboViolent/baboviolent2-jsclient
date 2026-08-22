@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.6](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.5...v0.10.6) (2026-08-22)
+
+
+### Bug Fixes
+
+* **release:** publish OCI index metadata ([513c91b](https://github.com/BaboViolent/baboviolent2-jsclient/commit/513c91b16d55bbad134479d27fa3489ed6d97366))
+
 ## [0.10.5](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.4...v0.10.5) (2026-08-22)
 
 
