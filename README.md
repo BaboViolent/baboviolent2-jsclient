@@ -3,6 +3,8 @@
 Public WebGL browser client for BaboViolent 2. This repository includes the
 runtime content required to load maps, models, textures, and sounds.
 
+**[Play BaboViolent in your browser →](https://baboviolent.net/)**
+
 ```sh
 cd jsclient
 npm test
