@@ -46,10 +46,14 @@ jobs:
           images: zot.standouthost.com/baboviolent/baboviolent2-jsclient
           tags: type=raw,value=${{ github.ref_name }}
           labels: |
+            org.opencontainers.image.authors=BaboViolent contributors
+            org.opencontainers.image.licenses=GPL-3.0
             org.opencontainers.image.title=Babo Violent 2 Web Client
             org.opencontainers.image.description=Browser client for Babo Violent 2
             org.opencontainers.image.vendor=BaboViolent
           annotations: |
+            org.opencontainers.image.authors=BaboViolent contributors
+            org.opencontainers.image.licenses=GPL-3.0
             org.opencontainers.image.title=Babo Violent 2 Web Client
             org.opencontainers.image.description=Browser client for Babo Violent 2
             org.opencontainers.image.vendor=BaboViolent
@@ -58,6 +62,9 @@ jobs:
         with:
           context: .
           push: true
+          # Zot requires image annotations on every manifest, including BuildKit's
+          # unannotated default provenance artifact. Keep digest signing below.
+          provenance: false
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.image-metadata.outputs.tags }}
           labels: ${{ steps.image-metadata.outputs.labels }}
