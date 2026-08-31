@@ -252,6 +252,21 @@ export class Renderer {
     return { mvp: mat4.multiply(proj, view), eye };
   }
 
+  /** Inverse of the overhead view, intersecting the native aim plane (z = 0).
+   * Mouse coordinates are CSS pixels; the projection uses framebuffer aspect.
+   */
+  screenToWorld(player, x, y) {
+    const canvas = this.gl.canvas;
+    if (!canvas.clientWidth || !canvas.clientHeight || !canvas.width || !canvas.height) return null;
+    const { eye } = this.cameraFor(player);
+    const halfHeight = Math.tan(Math.PI / 6) * eye[2];
+    return [
+      eye[0] + (x / canvas.clientWidth * 2 - 1) * halfHeight * canvas.width / canvas.height,
+      eye[1] + (1 - y / canvas.clientHeight * 2) * halfHeight,
+      0,
+    ];
+  }
+
   drawSprite(texture, x, y, z, size, angle, tint = [1, 1, 1, 1]) {
     const gl = this.gl;
     const c = Math.cos(angle) * size * 0.5;

@@ -280,6 +280,8 @@ export class Game {
     this.renderer.cameraFocus = [pos[0], pos[1], PLAYER_Z];
     this.renderer.cameraHeight = 7;
     this.renderer.sniperZoom = 0;
+    // Do not pull the camera toward the previous life's aim on the first tick.
+    this.thisPlayer.mousePosOnMap = [pos[0], pos[1], 0];
   }
 
   /** Ask server to respawn after death (online only). */
@@ -350,17 +352,10 @@ export class Game {
   }
 
   updateAim() {
-    const canvas = this.renderer.gl.canvas;
-    const p = this.thisPlayer.currentCF.position;
-    const ndcX = (this.input.mouse.x / canvas.clientWidth) * 2 - 1;
-    const ndcY = 1 - (this.input.mouse.y / canvas.clientHeight) * 2;
-    const halfHeight = Math.tan((60 * Math.PI) / 360) * (this.renderer.cameraHeight);
-    const aspect = canvas.clientWidth / canvas.clientHeight;
-    this.thisPlayer.mousePosOnMap = [
-      p[0] + ndcX * halfHeight * aspect,
-      p[1] + ndcY * halfHeight,
-      PLAYER_Z,
-    ];
+    if (this.thisPlayer.status !== PLAYER_STATUS_ALIVE || !this.ui.playing ||
+        this.ui.menuOpen || this.ui.consoleActive || this.ui.chatActive) return;
+    const aim = this.renderer.screenToWorld(this.thisPlayer, this.input.mouse.x, this.input.mouse.y);
+    if (aim) this.thisPlayer.mousePosOnMap = aim;
   }
 
   update(delay) {
@@ -1100,15 +1095,31 @@ export class Game {
       return;
     }
     const isSniper = player.weapon?.weaponID === WEAPON_SNIPER;
+    // ClientRender.cpp:47 — look ahead toward the cursor, not just the body.
+    const p = player.currentCF.position;
+    const aim = player.mousePosOnMap;
+    const focus = player.status === PLAYER_STATUS_ALIVE
+      ? p.map((value, axis) => (value * 5 + aim[axis] * 4) / 9)
+      : [...(this.renderer.cameraFocus ?? p)];
+    focus[0] = Math.max(0, Math.min(map.sizeX, focus[0]));
+    focus[1] = Math.max(-1, Math.min(map.sizeY + 1, focus[1]));
+    // Map.cpp:1193 — ordinary weapons keep the view inside the map; snipers
+    // can look all the way to its edges. Small maps stay centered.
+    if (!isSniper) {
+      const marginX = Math.min(5, map.sizeX / 2);
+      const marginY = Math.min(4, map.sizeY / 2);
+      focus[0] = Math.max(marginX, Math.min(map.sizeX - marginX, focus[0]));
+      focus[1] = Math.max(marginY, Math.min(map.sizeY - marginY, focus[1]));
+    }
     if (isSniper && this.ui.playing && !this.ui.menuOpen) {
       // Map.cpp:1227 — zoom from mouse distance to player (5–12 world units).
       const dx = player.mousePosOnMap[0] - player.currentCF.position[0];
       const dy = player.mousePosOnMap[1] - player.currentCF.position[1];
-      let dis = Math.hypot(dx, dy) * 2;
+      let dis = Math.hypot(dx, dy, aim[2] - p[2]) * 2;
       dis = Math.max(5, Math.min(12, dis));
-      this.smoothCamera(player.currentCF.position, dis, delay);
+      this.smoothCamera(focus, dis, delay);
     } else {
-      this.smoothCamera(player.currentCF.position, 7, delay);
+      this.smoothCamera(focus, 7, delay);
       this.renderer.sniperZoom = 0;
     }
   }

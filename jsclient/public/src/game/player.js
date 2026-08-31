@@ -2,7 +2,7 @@
 // (src/Game/PlayerUpdate.cpp lines ~252 and ~476).
 import {
   PLAYER_ACCEL, PLAYER_ACCEL_ICE, PLAYER_FRICTION, PLAYER_FRICTION_ICE,
-  PLAYER_MAX_SPEED, PLAYER_Z, THEME_SNOW, WEAPON_SMG, WEAPON_KNIVES,
+  PLAYER_MAX_SPEED, PLAYER_Z, THEME_SNOW, WEAPON_SMG, WEAPON_KNIVES, WEAPON_DUAL_MACHINE_GUN,
   STARTING_GRENADES, STARTING_MOLOTOVS, PLAYER_STATUS_ALIVE, SV_TIME_TO_SPAWN,
 } from './constants.js';
 import { DEFAULT_DECALS } from './skin.js';
@@ -168,6 +168,15 @@ export class Player {
     const cf = this.currentCF;
     let dx = this.mousePosOnMap[0] - cf.position[0];
     let dy = this.mousePosOnMap[1] - cf.position[1];
+    // PlayerUpdate.cpp:325 — native cl_preciseCursor defaults to true. Use
+    // the current muzzle for distant targets, but body aim for dual guns and
+    // close targets where the muzzle correction would become unstable.
+    const distance = Math.hypot(dx, dy, this.mousePosOnMap[2] - cf.position[2]);
+    if (this.weapon?.nuzzles?.length && this.weapon.weaponID !== WEAPON_DUAL_MACHINE_GUN && distance > 1.5) {
+      const muzzle = this.weapon.muzzleWorld(this);
+      dx = this.mousePosOnMap[0] - muzzle[0];
+      dy = this.mousePosOnMap[1] - muzzle[1];
+    }
     const len = Math.hypot(dx, dy) || 1;
     dx /= len;
     dy /= len;
