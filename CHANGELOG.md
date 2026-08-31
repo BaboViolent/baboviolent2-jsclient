@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.8](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.7...v0.10.8) (2026-08-31)
+
+
+### Bug Fixes
+
+* **aim:** restore native cursor projection and camera tracking ([2ac2c9d](https://github.com/BaboViolent/baboviolent2-jsclient/commit/2ac2c9ddc0395143830227337b340806825d5ef1))
+
 ## [0.10.7](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.6...v0.10.7) (2026-08-22)
 
 
