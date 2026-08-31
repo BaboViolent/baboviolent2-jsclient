@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.9](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.8...v0.10.9) (2026-08-31)
+
+
+### Bug Fixes
+
+* **release:** publish images compatible with Zot manifest lint ([5060cb2](https://github.com/BaboViolent/baboviolent2-jsclient/commit/5060cb233d8c4db65599d975d68fa3af622bec79))
+
 ## [0.10.8](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.7...v0.10.8) (2026-08-31)
 
 
