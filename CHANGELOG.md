@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.10](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.9...v0.10.10) (2026-09-08)
+
+
+### Bug Fixes
+
+* **release:** update dependencies and use Notation signing ([36d7a64](https://github.com/BaboViolent/baboviolent2-jsclient/commit/36d7a6400ce05f82aacb704cfcaebcaab1c33021))
+
 ## [0.10.9](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.8...v0.10.9) (2026-08-31)
 
 
