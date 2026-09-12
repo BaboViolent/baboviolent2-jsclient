@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.11](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.10...v0.10.11) (2026-09-12)
+
+
+### Bug Fixes
+
+* **client:** use the shared Babo mascot favicon ([23ece54](https://github.com/BaboViolent/baboviolent2-jsclient/commit/23ece541a413f548ff23bed011e168c169e908b4))
+
 ## [0.10.10](https://github.com/BaboViolent/baboviolent2-jsclient/compare/v0.10.9...v0.10.10) (2026-09-08)
 
 
